@@ -101,12 +101,12 @@ const IMAGE_PROMPT = [
   '',
   'Subject: {{2.body.results[1].properties.`Scene Prompt`.rich_text[1].plain_text}}',
   '',
-  'Art style: stylised hand-drawn comic-book illustration with thick black ink outlines, bold cel shading, hand-hatched shadows, gritty painterly textures and a saturated sun-bleached sci-fi frontier palette. One calm, monumental object with a strong silhouette that reads well on a phone. An original design: do not imitate any existing video game, logo, brand, symbol or character.',
+  'Look: an ultra-photorealistic cinematic photograph, indistinguishable from a real location shot. Full-frame camera, 35mm lens, deep focus, natural real-world lighting with volumetric dust and atmospheric haze, physically accurate materials (weathered alien metal, sandblasted stone, oxidised steel, grime, scratches, fine surface detail), subtle film grain, high dynamic range. Epic sense of scale: the gate towers over the canyon. Not an illustration: no cartoon, cel shading, ink outlines or painterly style. An original design: do not copy any existing video game, logo, emblem, brand, symbol or character.',
   '',
   'No people, no creatures, no text, letters, numbers, logos, HUD or UI. A calm scene: no combat, no explosions, no weapons firing, no destruction, no flying debris.'
 ].join('\n');
 const VIDEO_PROMPT = [
-  'Use the supplied image as the exact visual source.',
+  'Use the supplied image as the exact visual source. Keep its full photographic realism, materials and lighting; do not stylise it.',
   '',
   'Create a short seamless looping living-wallpaper video.',
   '',
