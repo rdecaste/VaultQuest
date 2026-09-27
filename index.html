@@ -292,11 +292,11 @@ select.inp{font-size:13px}
     <label>Vault name<input class="inp" name="name" required value="Gaming PC Vault" /></label>
     <label>Goal<input class="inp" name="goal" required value="Gaming PC" /></label>
     <div class="two">
-      <label>Target<input class="inp" name="target" type="number" inputmode="decimal" min="1" step="0.01" required value="3000" /></label>
-      <label>Already secured<input class="inp" name="starting" type="number" inputmode="decimal" min="0" step="0.01" value="0" /></label>
+      <label>Target<input class="inp" name="target" type="text" inputmode="decimal" autocomplete="off" required value="3.000" /></label>
+      <label>Already secured<input class="inp" name="starting" type="text" inputmode="decimal" autocomplete="off" value="0" /></label>
     </div>
     <div class="two">
-      <label>Monthly Core Charge<input class="inp" name="core" type="number" inputmode="decimal" min="1" step="0.01" required value="200" /></label>
+      <label>Monthly Core Charge<input class="inp" name="core" type="text" inputmode="decimal" autocomplete="off" required value="200" /></label>
       <label>Currency<select class="inp" name="currency"><option>EUR</option><option>USD</option><option>GBP</option></select></label>
     </div>
     <label>Start date<input class="inp" name="start_date" type="date" required /></label>
@@ -352,9 +352,26 @@ const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { ret
 function money(n, cur, signed) {
   const sym = { EUR: '€', USD: '$', GBP: '£' }[String(cur || 'EUR').toUpperCase()] || '';
   const v = Math.round((Number(n) || 0) * 100) / 100;
-  const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  const s = Math.abs(v).toLocaleString('nl-NL', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
   return (v < 0 ? '-' : signed && v > 0 ? '+' : '') + sym + s;
 }
+// Amounts are typed Dutch style (484,51 or 9.777,59) or English style (484.51).
+// A lone separator followed by exactly three digits groups thousands; any other
+// lone separator marks the cents; with both, the last one marks the cents.
+function parseAmount(raw) {
+  let s = String(raw == null ? '' : raw).replace(/[\s\u00a0€$£']/g, '');
+  if (!s) return NaN;
+  const c = s.lastIndexOf(','), d = s.lastIndexOf('.');
+  if (c >= 0 && d >= 0) {
+    const dec = c > d ? ',' : '.';
+    s = s.split(dec === ',' ? '.' : ',').join('').replace(dec, '.');
+  } else if (c >= 0 || d >= 0) {
+    const sep = c >= 0 ? ',' : '.', parts = s.split(sep);
+    s = parts.length > 2 || parts[parts.length - 1].length === 3 ? parts.join('') : parts.join('.');
+  }
+  return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
+}
+const amountText = n => (Math.round((Number(n) || 0) * 100) / 100).toLocaleString('nl-NL', { maximumFractionDigits: 2 });
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const monthLabel = mk => mk ? MONTHS[Number(mk.slice(5, 7)) - 1] + ' ' + mk.slice(0, 4) : '—';
 const dateLabel = iso => { const t = Date.parse(iso); if (isNaN(t)) return ''; return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(t)); };
@@ -606,16 +623,16 @@ function renderControls(v) {
   const left = Math.max(0, v.core_charge - v.month.core_paid);
   el.innerHTML =
     '<div class="sec">Inject Funds</div>' +
-    '<div class="box"><div class="form-row"><input class="inp" id="injAmt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="' + (left > 0 ? left : 50) + '" />' +
+    '<div class="box"><div class="form-row"><input class="inp" id="injAmt" type="text" inputmode="decimal" autocomplete="off" placeholder="' + amountText(left > 0 ? left : 50) + '" />' +
       '<button class="btn good" type="button" data-act="inject">Inject</button></div>' +
       '<div class="hint">' + (left > 0 ? esc(money(left, v.currency)) + ' of this month\'s Core Charge left. Anything above that counts as Overcharge.' : 'Core Charge done for this month. Every injection now is Overcharge.') + '</div></div>' +
     (v.funded ? '<div class="sec">Vault Key</div><div class="box gold"><div class="lore">The goal is fully funded. Opening the Vault is a win, not a breach.</div><div style="margin-top:10px"><button class="btn gold wide" type="button" data-act="open">Open Vault</button></div></div>' : '') +
     '<div class="sec">Core Charge</div>' +
-    '<div class="box"><div class="form-row"><input class="inp" id="coreAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="' + v.core_charge + '" />' +
+    '<div class="box"><div class="form-row"><input class="inp" id="coreAmt" type="text" inputmode="decimal" autocomplete="off" placeholder="' + amountText(v.core_charge) + '" />' +
       '<button class="btn ghost" type="button" data-act="baseline">Recalibrate</button></div>' +
       '<div class="hint">Changes the plan from this month on. Past months and past Overcharge stay as they were.</div></div>' +
     '<div class="sec" style="color:var(--bad)">Breach</div>' +
-    '<div class="box red"><div class="form-row"><input class="inp" id="brAmt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="Amount" />' +
+    '<div class="box red"><div class="form-row"><input class="inp" id="brAmt" type="text" inputmode="decimal" autocomplete="off" placeholder="Amount" />' +
       '<select class="inp" id="brWhy"><option>Unexpected expense</option><option>Changed priority</option><option>Impulse purchase</option><option>Other</option></select></div>' +
       '<div style="margin-top:8px"><button class="btn danger wide" type="button" data-act="breach">⚠ Breach Vault</button></div></div>' +
     '<div class="hint" style="margin-top:14px"><a href="#" data-act="passcode" style="color:var(--dim)">Change passcode on this device</a></div>';
@@ -732,17 +749,17 @@ async function onAct(act) {
   if (act === 'passcode') { passcode(true); return; }
   if (act === 'create') { openCreate(); return; }
   if (act === 'inject') {
-    const amt = Number($('injAmt').value || $('injAmt').placeholder);
+    const amt = parseAmount($('injAmt').value || $('injAmt').placeholder);
     if (!(amt > 0)) { toast('Enter an amount', true); return; }
     const r = await send({ action: 'inject', amount: amt }, 'Charging core…');
     if (r) splashInject(r, v.currency);
   } else if (act === 'baseline') {
-    const amt = Number($('coreAmt').value);
+    const amt = parseAmount($('coreAmt').value);
     if (!(amt > 0)) { toast('Enter the new monthly Core Charge', true); return; }
     const r = await send({ action: 'baseline', core: amt }, 'Recalibrating…');
     if (r) splash('Core Recalibrated', 'var(--r-rare)', [money(r.from, v.currency) + ' → ' + money(r.to, v.currency) + ' / month', 'Baseline completion ' + monthLabel(r.baseline_completion), 'Projected unlock ' + monthLabel(r.projected)]);
   } else if (act === 'breach') {
-    const amt = Number($('brAmt').value);
+    const amt = parseAmount($('brAmt').value);
     if (!(amt > 0)) { toast('Enter the amount you take out', true); return; }
     pendingBreach = { amount: amt, reason: $('brWhy').value };
     $('breachText').textContent = 'Take ' + money(amt, v.currency) + ' out of ' + v.name + ' (' + pendingBreach.reason.toLowerCase() + ')?';
@@ -808,7 +825,7 @@ function openCreate() {
 }
 function updatePreview() {
   const f = $('createForm');
-  const t = Number(f.target.value), s = Number(f.starting.value || 0), c = Number(f.core.value), cur = f.currency.value;
+  const t = parseAmount(f.target.value), s = parseAmount(f.starting.value || 0), c = parseAmount(f.core.value), cur = f.currency.value;
   if (!(t > 0) || !(c > 0) || s >= t) { $('createPreview').textContent = 'Enter a target above the starting amount and a Core Charge above zero.'; return; }
   const k = campaign(t, s, c);
   const start = f.start_date.value || gameDay(Date.now());
@@ -823,6 +840,7 @@ $('createForm').addEventListener('submit', async e => {
   const f = e.target;
   const fields = { action: 'create' };
   ['name', 'goal', 'target', 'starting', 'core', 'currency', 'start_date'].forEach(n => { fields[n] = f[n].value; });
+  ['target', 'starting', 'core'].forEach(n => { const a = parseAmount(fields[n] || 0); fields[n] = isNaN(a) ? '' : String(a); });
   $('createModal').classList.remove('on');
   const r = await send(fields, 'Forging vault…');
   if (r) splash('Vault Forged', 'var(--hud)', [fields.name, r.campaign.months_needed + ' months · ~' + r.campaign.weeks + ' weeks', r.campaign.forms + ' forms · ' + r.campaign.per_evolution + ' Perfect Defenses each'], 'WARDEN is generating the first form');
