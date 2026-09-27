@@ -16,6 +16,8 @@ A savings-goal dashboard styled as a vault you guard and evolve. It stands on it
 
 Notion data lives under "🔐 Vault": Vaults, Vault Events, Vault Weeks and Vault Forms. To regenerate a tier's visual, tick **Regenerate** on its Form row and call the Forge webhook with `tier=<n>`.
 
+Visuals are ultra-photorealistic cinematic shots of one original alien vault gate, inspired by the Borderlands vault gates but with no Borderlands logos, symbols or names. The shared look is `IMAGE_PROMPT` in `make/blueprints.js`; each tier's own details are its **Scene Prompt** in Vault Forms (keep it under 2000 characters). Tiers are forged once, the first time the vault reaches them.
+
 ## Code
 
 `make/src` holds the scenario code. Run `node make/test/run.js` to test it. `VAULT_PASSCODE=… node make/blueprints.js` builds the blueprints; its output is ignored by git because it contains the passcode.
