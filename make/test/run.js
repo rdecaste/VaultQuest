@@ -90,4 +90,14 @@ assert.equal(s.vault.charge_advantage, 300);
 
 // --- open requires funding
 assert.equal(run('action', { passcode: 'test', action: 'open', vault, now: '2026-12-02T10:00:00Z' }).code, 'not_funded');
+
+// --- trophies: newest Epic-or-better loot becomes camp props, three at most
+const wk = loot => ({ properties: { Loot: { rich_text: loot ? [{ plain_text: loot }] : [] } } });
+let t = run('trophies', { weeks: [wk('Rare: Patient Relic'), wk('Epic: Frugal Rail Pistol of the Long Game'), wk(''), wk('Mythic: Glinting Piggy Cannon'),
+  wk('Legendary: Stubborn Salvage Drone of Quiet Mondays'), wk('Epic: Vigilant Energy Cell')] });
+console.log('trophies:', t.line);
+assert.equal(t.count, 3);
+assert.ok(t.line.includes('rail pistol') && t.line.includes('piggy bank') && t.line.includes('salvage drone') && !t.line.includes('energy cells'));
+assert.equal(run('trophies', { weeks: [wk('Common: Frugal Relic')] }).line, '');
+assert.equal(run('trophies', {}).line, '');
 console.log('ALL OK');

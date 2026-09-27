@@ -100,6 +100,7 @@ const IMAGE_PROMPT = [
   'Target display: iPhone portrait full-screen living wallpaper, 1206 x 2622 (aspect ratio 201:437). Keep the vault door and every essential detail inside the central 70% of the width and the middle band of the image. Keep the top 22% visually calm (open sky or plain rock) for a title overlay, and the bottom 22% visually calm (sand or soft shadow) for a metrics overlay.',
   '',
   'Subject: {{2.body.results[1].properties.`Scene Prompt`.rich_text[1].plain_text}}',
+  '{{21.result.line}}',
   '',
   'Look: an ultra-photorealistic cinematic photograph, indistinguishable from a real location shot. Full-frame camera, 35mm lens, deep focus, natural real-world lighting with volumetric dust and atmospheric haze, physically accurate materials (weathered alien metal, sandblasted stone, oxidised steel, grime, scratches, fine surface detail), subtle film grain, high dynamic range. Epic sense of scale: the gate towers over the canyon. Not an illustration: no cartoon, cel shading, ink outlines or painterly style. An original design: do not copy any existing video game, logo, emblem, brand, symbol or character.',
   '',
@@ -129,6 +130,12 @@ function forge() {
     flow: [
       webhook(1, 'Forge Request (tier, force)', HOOK.forge),
       query(2, 'Read Vault Form for tier', DS.forms, { filter: { property: 'Tier', number: { equals: '__RAW__' + tier + '__RAW__' } }, page_size: 1 }),
+      // Monday passes the Vault on a tier-up so its best loot can appear in the camp.
+      query(20, 'Read this Vault\'s loot', DS.weeks, { filter: { and: [
+        { property: 'Vault', relation: { contains: '{{ifempty(1.vault; "' + NO_ID + '")}}' } },
+        { property: 'Loot', rich_text: { is_not_empty: true } }
+      ] }, sorts: [{ property: 'Week Start', direction: 'descending' }], page_size: 30 }),
+      codeModule(21, 'Turn the best loot into camp props', code.trophies, { weeks: '{{20.body.results}}' }),
       {
         id: 3, module: 'openai-gpt-3:GenerateImage', version: 1, metadata: meta('Generate Vault Image'), parameters: { __IMTCONN__: CONN.openai },
         filter: filter('Only when this tier has no video yet, Regenerate is ticked, or force=1', [
@@ -232,7 +239,7 @@ function monday() {
         [
           notion(8, 'Update Vault progression', 'PATCH', '/v1/pages/' + vid, '{{4.result.vault_patch}}', { filter: filter('Something was evaluated', [[{ a: '{{4.result.vault_patch}}', o: 'exist' }]]) }),
           http(9, 'Publish Vault Dashboard', URL.publish, { reason: 'Monday evaluation: {{substring(4.result.summary; 0; 90)}}' }, { onerror: [resume(59, 'Publish catches up later')] }),
-          http(10, 'Forge the new tier visual', URL.forge, { tier: '{{4.result.tier}}' }, { filter: filter('Only after a tier-up', [[{ a: '{{4.result.tier_up}}', o: 'number:equal', b: '1' }]]) })
+          http(10, 'Forge the new tier visual', URL.forge, { tier: '{{4.result.tier}}', force: '1', vault: vid }, { filter: filter('Only after a tier-up', [[{ a: '{{4.result.tier_up}}', o: 'number:equal', b: '1' }]]) })
         ]
       ])
     ],

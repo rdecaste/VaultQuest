@@ -11,10 +11,10 @@ const subs = {
 // lines (the commented source lives in make/src).
 const strip = s => s.split('\n').filter(l => !/^\s*\/\//.test(l) && l.trim()).join('\n');
 const out = {};
-for (const name of ['action', 'monday', 'publish']) {
+for (const name of ['action', 'monday', 'publish', 'trophies']) {
   let src = fs.readFileSync(path.join(__dirname, 'src', name + '.js'), 'utf8');
   for (const [k, v] of Object.entries(subs)) src = src.split(k).join(v);
-  out[name] = strip(core + '\n' + src);
+  out[name] = strip(name === 'trophies' ? src : core + '\n' + src);
 }
 module.exports = out;
 if (require.main === module) {
