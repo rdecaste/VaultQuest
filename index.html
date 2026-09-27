@@ -327,8 +327,11 @@ select.inp{font-size:13px}
 
 <script>
 'use strict';
-const STATE_URL = 'data.json';
-const FALLBACK_ACTION_URL = 'https://hook.eu2.make.com/3fqg0aje41n3zr4cmhm22ldoazltpr3p';
+// The Quest Engine (Cloudflare Worker) serves the state and takes the actions
+// since 27 Sep 2026; data.json in this repo is no longer updated.
+const ENGINE_URL = 'https://quest-engine.quest-engine.workers.dev';
+const STATE_URL = ENGINE_URL + '/vault';
+const FALLBACK_ACTION_URL = ENGINE_URL + '/vault/action';
 const PASSCODE_KEY = 'vault-passcode';
 const SEEN_KEY = 'vault-seen-events';
 const TZ = 'Europe/Amsterdam';
