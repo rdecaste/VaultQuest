@@ -103,7 +103,9 @@ const IMAGE_PROMPT = [
   '',
   'Look: an ultra-photorealistic cinematic photograph, indistinguishable from a real location shot. Full-frame camera, 35mm lens, deep focus, natural real-world lighting with volumetric dust and atmospheric haze, physically accurate materials (weathered alien metal, sandblasted stone, oxidised steel, grime, scratches, fine surface detail), subtle film grain, high dynamic range. Epic sense of scale: the gate towers over the canyon. Not an illustration: no cartoon, cel shading, ink outlines or painterly style. An original design: do not copy any existing video game, logo, emblem, brand, symbol or character.',
   '',
-  'No people, no creatures, no text, letters, numbers, logos, HUD or UI. A calm scene: no combat, no explosions, no weapons firing, no destruction, no flying debris.'
+  'The gate is closed and sealed: the door is fully shut with no gap or opening, solid and immovable. A visible aura radiates outward from the closed gate. Keep the guards, camp and campfire at the foot of the gate in the middle band of the image.',
+  '',
+  'People: a few small, realistic human guards in weathered desert gear (cloaks, scarves, goggles, patched armour), seen from a distance and dwarfed by the gate, faces in shadow or turned away; weapons slung or resting, never aimed. No creatures, no text, letters, numbers, logos, HUD or UI. A calm vigil: no combat, no explosions, no weapons firing, no destruction, no flying debris.'
 ].join('\n');
 const VIDEO_PROMPT = [
   'Use the supplied image as the exact visual source. Keep its full photographic realism, materials and lighting; do not stylise it.',
@@ -112,9 +114,9 @@ const VIDEO_PROMPT = [
   '',
   'CAMERA — LOCKED: keep the camera completely still from first frame to last. No zoom, pan, tilt, dolly, orbit, reframing, shake or perspective change.',
   '',
-  'THE VAULT STAYS SHUT: the vault door and its structure keep exactly the same shape and position. No opening, no rotating doors, no parts sliding or unfolding, no new objects.',
+  'THE GATE STAYS CLOSED AND STANDS FIRM: the vault door and its structure keep exactly the same shape and position in every frame. The door never opens, not even a crack: no opening, no rotating, no parts sliding, retracting or unfolding, no light bursting out of the door, no new objects.',
   '',
-  'ALLOWED MOTION ONLY: {{2.body.results[1].properties.Aura.rich_text[1].plain_text}}; gentle glow pulses in the energy core and lamps; slow drifting dust and heat haze; very subtle cloud or star movement in the sky.',
+  'ALLOWED MOTION ONLY: {{2.body.results[1].properties.Aura.rich_text[1].plain_text}}; the aura around the gate breathes and shimmers softly; campfire and brazier flames flicker with rising smoke and embers; the guards make small natural movements (shifting weight, turning heads, warming hands) and a patrolling guard walks a few slow steps and back; gentle glow pulses in the core and lamps; drifting dust and heat haze; very subtle cloud or star movement.',
   '',
   'Return every animated element to its exact starting state by the final frame so the loop is seamless; first and final frame should match. No flashes, abrupt brightness changes, cuts or transitions. Portrait 9:16. Silent: no dialogue, music or sound effects.'
 ].join('\n');
