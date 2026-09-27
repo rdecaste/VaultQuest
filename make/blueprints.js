@@ -91,7 +91,7 @@ function publish() {
         ]
       })
     ],
-    metadata: scenarioMeta(true, true)
+    metadata: scenarioMeta(true, false) // not sequential: a sequential webhook answers "Accepted" instead of the Respond module
   };
 }
 
@@ -172,7 +172,8 @@ function action() {
   const inputs = {}; fields.forEach(f => { inputs[f] = '{{1.' + f + '}}'; });
   inputs.vault = '{{2.body.results[1]}}';
   const publishCall = (id, reason) => http(id, 'Publish and wait for the new state', URL.publish, { reason }, { onerror: [resume(id + 50, 'Dashboard catches up on the next publish')] });
-  const respondOk = (id, pub) => respond(id, 'Respond with result + state', '{"result":{{3.result.feedback}},"state":{{ifempty(' + pub + '.data; "null")}}}');
+  // The Publish reply arrives as a buffer; anything but the state JSON becomes null.
+  const respondOk = (id, pub) => respond(id, 'Respond with result + state', '{"result":{{3.result.feedback}},"state":{{if(contains(toString(' + pub + '.data); "generated_at"); toString(' + pub + '.data); "null")}}}');
   return {
     name: 'Vault — Action',
     flow: [
@@ -200,7 +201,7 @@ function action() {
         [respond(16, 'Respond rejected', '{{3.result.response_body}}')].map(m => Object.assign(m, { filter: filter('Rejected', [[eq('{{3.result.op}}', 'reject')]]) }))
       ])
     ],
-    metadata: scenarioMeta(true, true)
+    metadata: scenarioMeta(true, false) // the page waits for this reply, so it must not queue
   };
 }
 
