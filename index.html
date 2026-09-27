@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#07060a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Vault" />
+<title>The Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#07060a;--card:#0e0c12;--line:rgba(255,255,255,.1);--text:#fff;--muted:rgba(255,255,255,.72);--dim:rgba(255,255,255,.48);
+  --hud:#ffc53d;--hud-2:#ff8a1f;--good:#4ee38a;--bad:#ff4d4d;--ink:#000;
+  --r-common:#e9e6de;--r-uncommon:#4ee36a;--r-rare:#3f8cff;--r-epic:#b35cff;--r-legendary:#ff9a1f;--r-mythic:#ff5fd2;
+  --rar:var(--r-common);
+  --flip-ms:1000ms;--gap:10px;--radius:18px;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);
+  --display:"Bangers",Impact,"Arial Black",sans-serif;
+  --mono:"Chakra Petch",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--mono)}
+body{width:100vw;height:100vh;height:100dvh}
+button,input,select{font:inherit;color:inherit}
+.scene{position:fixed;inset:0;padding:calc(var(--gap) + var(--safe-top)) calc(var(--gap) + var(--safe-right)) calc(var(--gap) + var(--safe-bottom)) calc(var(--gap) + var(--safe-left));perspective:1800px;background:var(--bg)}
+.card{position:relative;width:100%;height:100%;max-width:520px;margin:0 auto;transform-style:preserve-3d;transition:transform var(--flip-ms) cubic-bezier(.45,0,.55,1);cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.card.is-flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;overflow:hidden;border-radius:var(--radius);border:2px solid #000;background:var(--card);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 18px 40px rgba(0,0,0,.6);-webkit-backface-visibility:hidden;backface-visibility:hidden;isolation:isolate}
+.face.back{transform:rotateY(180deg)}
+.card.show-back .front,.card:not(.show-back) .back{visibility:hidden}
+
+/* ---------- FRONT ---------- */
+.media{position:absolute;inset:0;background:#120d0a}
+.media video,.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 900ms ease}
+.media .is-active{opacity:1}
+/* Fallback art until the first Gemini clip exists: a drawn vault door. */
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:
+  radial-gradient(80% 45% at 50% 42%,color-mix(in srgb,var(--rar) 26%,transparent),transparent 70%),
+  linear-gradient(180deg,#2b1a10 0%,#5b3419 45%,#9a5a28 70%,#c98a47 100%)}
+.fallback.on{display:flex}
+.fallback svg{width:78%;max-width:360px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.6))}
+.fallback .ring{transform-origin:100px 100px;animation:spin 24s linear infinite}
+.fallback .core{animation:corePulse 3.2s ease-in-out infinite;transform-origin:100px 100px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes corePulse{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+.shade{position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(180deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.12) 22%,transparent 45%,rgba(0,0,0,.15) 60%,rgba(0,0,0,.86) 100%)}
+.scan{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.08;background:repeating-linear-gradient(0deg,rgba(255,255,255,.6) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+/* Breach: the front glitches red while the cycle is compromised. */
+.front.breached .fx-breach{opacity:1}
+.fx-breach{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .8s;background:radial-gradient(ellipse 80% 70% at 50% 50%,transparent 45%,rgba(200,0,0,.5) 85%,rgba(120,0,0,.85) 100%);animation:glitch 5s infinite steps(1)}
+@keyframes glitch{0%,92%,100%{transform:none;filter:none}93%{transform:translateX(-3px);filter:hue-rotate(20deg)}95%{transform:translateX(4px)}97%{transform:translateX(-1px)}}
+.front.funded .fx-funded{opacity:1}
+.fx-funded{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity 1s;background:radial-gradient(ellipse 70% 55% at 50% 45%,rgba(255,200,60,.28),transparent 70%);animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+
+.hud-top{position:absolute;top:14px;left:14px;right:14px;z-index:6;pointer-events:none}
+.rarity{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 2px;border:2px solid #000;border-radius:4px;background:var(--rar);color:#000;font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;box-shadow:2px 2px 0 #000;transform:skew(-8deg)}
+.tier-name{margin-top:8px;font:400 clamp(34px,11vw,54px)/.92 var(--display);letter-spacing:.02em;color:#fff;-webkit-text-stroke:1.5px #000;text-shadow:3px 3px 0 #000,0 0 22px color-mix(in srgb,var(--rar) 55%,transparent);text-transform:uppercase}
+.tier-num{margin-top:6px;font:700 13px/1 var(--mono);letter-spacing:.28em;color:var(--rar);text-shadow:1px 1px 0 #000,0 0 10px rgba(0,0,0,.9)}
+.ticker{margin-top:12px;pointer-events:auto;min-height:36px}
+.ticker .tx{display:inline-block;max-width:100%;padding:6px 10px;border-left:3px solid var(--hud);background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);font:600 11.5px/1.35 var(--mono);color:#ffe7b0;opacity:0;transform:translateY(-4px);transition:opacity .6s,transform .6s}
+.ticker .tx.on{opacity:1;transform:none}
+.ticker .who{color:var(--hud);font-weight:700;letter-spacing:.08em}
+
+.hud-bottom{position:absolute;left:14px;right:14px;bottom:16px;z-index:6;pointer-events:none}
+.core-head{display:flex;justify-content:space-between;align-items:baseline}
+.lbl{font:700 10px/1 var(--mono);letter-spacing:.2em;color:var(--hud);text-transform:uppercase;text-shadow:1px 1px 0 #000}
+.core-num{font:700 clamp(18px,5.6vw,24px)/1 var(--mono);font-variant-numeric:tabular-nums;text-shadow:2px 2px 0 #000}
+.core-num small{font-size:.62em;color:var(--muted)}
+.pct{font:700 12px/1 var(--mono);color:var(--muted);text-shadow:1px 1px 0 #000}
+.energy{position:relative;margin-top:7px;height:14px;border:2px solid #000;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;box-shadow:2px 2px 0 #000;transform:skew(-12deg)}
+.energy-fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#ff8a1f,#ffc53d 60%,#fff2a8);transition:width 900ms cubic-bezier(.2,.8,.2,1)}
+.energy-fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:sweep 2.8s linear infinite}
+@keyframes sweep{from{background-position:-60% 0}to{background-position:160% 0}}
+.energy-ticks{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),rgba(0,0,0,.55) calc(10% - 2px) 10%)}
+.shield{margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dia{display:flex;gap:5px}
+.d{width:18px;height:18px;display:grid;place-items:center;font:700 10px/1 var(--mono);transform:rotate(45deg);border:2px solid #000;background:rgba(255,255,255,.14);box-shadow:1px 1px 0 #000}
+.d>span{transform:rotate(-45deg)}
+.d.on{background:linear-gradient(135deg,#7fd8ff,#2f7dff);box-shadow:0 0 8px rgba(80,170,255,.7),1px 1px 0 #000}
+.d.today{animation:todayPulse 1.8s ease-in-out infinite}
+@keyframes todayPulse{50%{box-shadow:0 0 16px rgba(120,200,255,1),1px 1px 0 #000}}
+.d.hit{background:var(--bad);box-shadow:0 0 10px rgba(255,60,60,.8)}
+.d.dead{background:rgba(255,255,255,.05);border-color:rgba(0,0,0,.6)}
+.d.pre{background:rgba(255,255,255,.06);border-style:dashed}
+.shield-num{font:700 14px/1 var(--mono);text-shadow:1px 1px 0 #000;white-space:nowrap}
+.shield-note{margin-top:6px;font:700 10.5px/1.2 var(--mono);letter-spacing:.12em;color:var(--bad);text-transform:uppercase;text-shadow:1px 1px 0 #000;min-height:13px}
+.shield-note.ok{color:#9fd4ff}
+.tap-hint{position:absolute;right:16px;top:20px;z-index:6;font:600 9px/1 var(--mono);letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+
+.empty{position:absolute;inset:0;z-index:7;display:none;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 64px;text-align:center}
+.empty.on{display:flex}
+.empty h1{margin:0;font:400 clamp(38px,12vw,58px)/.95 var(--display);-webkit-text-stroke:1.5px #000;text-shadow:3px 3px 0 #000}
+.empty p{margin:10px 0 18px;color:#ffe7b0;font-size:13px;line-height:1.45;text-shadow:1px 1px 0 #000}
+
+/* ---------- BUTTONS ---------- */
+.btn{appearance:none;border:2px solid #000;border-radius:6px;padding:11px 16px;background:var(--hud);color:#000;font:700 13px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;box-shadow:3px 3px 0 #000;cursor:pointer;transform:skew(-6deg)}
+.btn:active{transform:skew(-6deg) translate(2px,2px);box-shadow:1px 1px 0 #000}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.good{background:var(--good)}
+.btn.ghost{background:rgba(255,255,255,.1);color:#fff}
+.btn.gold{background:linear-gradient(90deg,#ffb020,#ffe27a);animation:breathe 2.4s infinite}
+.btn.wide{width:100%}
+
+/* ---------- BACK ---------- */
+.back{display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--rar) 16%,transparent),transparent 60%),linear-gradient(180deg,#16110d,#0a080c)}
+.hazard{height:8px;flex:none;background:repeating-linear-gradient(-45deg,var(--hud) 0 10px,#000 10px 20px)}
+.b-head{padding:12px 14px 8px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;cursor:pointer}
+.b-title{font:400 clamp(24px,7.5vw,32px)/.95 var(--display);letter-spacing:.03em;-webkit-text-stroke:1px #000;text-shadow:2px 2px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b-sub{margin-top:3px;font-size:11px;color:var(--muted)}
+.b-flip{font:700 9px/1 var(--mono);letter-spacing:.2em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+.tabs{display:flex;gap:4px;padding:0 10px 8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1 0 auto;padding:8px 10px;border:2px solid #000;border-radius:4px;background:rgba(255,255,255,.07);font:700 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);cursor:pointer}
+.tab.on{background:var(--hud);color:#000;box-shadow:2px 2px 0 #000}
+.panel{flex:1;overflow-y:auto;padding:4px 12px 16px;-webkit-overflow-scrolling:touch;cursor:auto;user-select:text;-webkit-user-select:text}
+.panel[hidden]{display:none}
+.sec{margin:12px 0 6px;font:700 10px/1 var(--mono);letter-spacing:.22em;color:var(--hud);text-transform:uppercase}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.stat{padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:rgba(0,0,0,.35)}
+.stat .k{font:600 9px/1.2 var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.stat .v{margin-top:5px;font:700 16px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.stat .v.pos{color:var(--good)}.stat .v.neg{color:var(--bad)}
+.stat.wide{grid-column:1/-1}
+.meter{margin-top:7px;height:8px;border:1px solid #000;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden}
+.meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--rar),#fff)}
+.pips{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+.pip{width:14px;height:14px;border:2px solid #000;transform:skew(-10deg);background:rgba(255,255,255,.1)}
+.pip.on{background:var(--rar);box-shadow:0 0 6px var(--rar)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{padding:7px 2px;border:1px solid var(--line);border-radius:5px;text-align:center;background:rgba(0,0,0,.35)}
+.wd b{display:block;font:700 9px/1 var(--mono);letter-spacing:.1em;color:var(--dim)}
+.wd span{display:block;margin-top:5px;font:700 15px/1 var(--mono)}
+.wd.ok span{color:#7fd8ff}.wd.hit span{color:var(--bad)}.wd.today{border-color:var(--hud)}
+.raid{margin-top:6px;font-size:11.5px;line-height:1.4;color:var(--muted)}
+.raid b{color:#ffe7b0}
+
+.form-row{display:flex;gap:8px;align-items:stretch;margin-top:6px}
+.inp{flex:1;min-width:0;padding:10px 12px;border:2px solid #000;border-radius:6px;background:rgba(255,255,255,.1);font:700 15px/1 var(--mono);outline:none}
+.inp:focus{border-color:var(--hud)}
+select.inp{font-size:13px}
+.hint{margin-top:6px;font-size:11px;line-height:1.4;color:var(--dim)}
+.box{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.3)}
+.box.red{border-color:rgba(255,77,77,.4);background:rgba(80,0,0,.25)}
+.box.gold{border-color:rgba(255,197,61,.5);background:rgba(90,60,0,.25)}
+
+.log{list-style:none;margin:0;padding:0}
+.log li{display:flex;gap:10px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid var(--line)}
+.log .ic{flex:none;width:26px;height:26px;display:grid;place-items:center;border:2px solid #000;border-radius:4px;font-size:13px;background:rgba(255,255,255,.1)}
+.log .t{font-size:12.5px;font-weight:700}
+.log .s{margin-top:2px;font-size:10.5px;color:var(--dim)}
+.log .amt{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ic.CORE_CHARGE{background:#2f7dff}.ic.OVERCHARGE{background:var(--r-epic)}.ic.BREACH{background:var(--bad)}.ic.PERFECT_DEFENSE{background:var(--good)}.ic.TIER_UP{background:var(--r-legendary)}.ic.VAULT_OPENED{background:var(--hud)}.ic.BASELINE_CHANGED{background:#666}
+.loot-card{display:flex;gap:10px;align-items:center;padding:9px;margin-top:6px;border:2px solid #000;border-left:6px solid var(--lc,#ccc);border-radius:6px;background:rgba(255,255,255,.05)}
+.loot-card .n{font-size:12.5px;font-weight:700;color:var(--lc)}
+.loot-card .f{margin-top:2px;font-size:11px;color:var(--muted);font-style:italic}
+.loot-card .w{margin-left:auto;font-size:10px;color:var(--dim);white-space:nowrap}
+.form-list li{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
+.form-list .tn{width:28px;font:700 12px/1 var(--mono);color:var(--dim)}
+.form-list .fn{font-weight:700;font-size:13px}
+.form-list .locked .fn{color:var(--dim);letter-spacing:.2em}
+.form-list .cur{background:rgba(255,197,61,.08)}
+.lore{font-size:13px;line-height:1.55;color:#f3e6cf}
+.empty-note{padding:18px 4px;color:var(--dim);font-size:12px;text-align:center}
+
+/* ---------- OVERLAYS ---------- */
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.modal.on{display:flex}
+.sheet{width:100%;max-width:440px;max-height:92vh;overflow:auto;padding:16px;border:2px solid #000;border-radius:12px;background:linear-gradient(180deg,#1c1510,#0d0a0c);box-shadow:0 0 0 1px rgba(255,255,255,.1),6px 6px 0 #000}
+.sheet h2{margin:0 0 4px;font:400 30px/1 var(--display);letter-spacing:.03em;-webkit-text-stroke:1px #000;text-shadow:2px 2px 0 #000}
+.sheet label{display:block;margin-top:10px;font:700 9.5px/1 var(--mono);letter-spacing:.18em;color:var(--hud);text-transform:uppercase}
+.sheet .inp{width:100%;margin-top:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preview{margin-top:12px;padding:10px;border:1px dashed rgba(255,197,61,.5);border-radius:8px;font-size:12px;line-height:1.55;color:#ffe7b0}
+.actions-row{display:flex;gap:8px;margin-top:14px}
+.actions-row .btn{flex:1}
+
+.splash{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;pointer-events:auto;background:radial-gradient(ellipse at center,rgba(0,0,0,.55),rgba(0,0,0,.9))}
+.splash.on{display:flex;animation:splashIn .35s ease-out}
+@keyframes splashIn{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:none}}
+.splash .big{font:400 clamp(40px,13vw,72px)/.9 var(--display);letter-spacing:.03em;-webkit-text-stroke:2px #000;text-shadow:4px 4px 0 #000,0 0 30px var(--sc,var(--hud));color:var(--sc,var(--hud));transform:rotate(-3deg)}
+.splash .lines{margin-top:18px;font:700 15px/1.6 var(--mono);text-shadow:1px 1px 0 #000}
+.splash .lines div:first-child{font-size:20px}
+.splash .sub{margin-top:18px;font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.splash .loot-card{max-width:340px;margin:16px auto 0;text-align:left;background:rgba(0,0,0,.6)}
+.toast{position:fixed;left:50%;bottom:calc(20px + var(--safe-bottom));z-index:70;transform:translateX(-50%);max-width:90vw;padding:10px 14px;border:2px solid #000;border-radius:6px;background:var(--hud);color:#000;font:700 12px/1.3 var(--mono);box-shadow:3px 3px 0 #000;display:none}
+.toast.on{display:block}
+.toast.err{background:var(--bad);color:#fff}
+.busy{position:fixed;inset:0;z-index:65;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(0,0,0,.6)}
+.busy.on{display:flex}
+.busy .spin{width:56px;height:56px;border:4px solid rgba(255,197,61,.25);border-top-color:var(--hud);border-radius:50%;animation:spin 800ms linear infinite}
+.busy div:last-child{font:700 11px/1 var(--mono);letter-spacing:.24em;color:var(--hud);text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="card" id="card" tabindex="0" role="button" aria-pressed="false" aria-label="Vault card. Tap to flip.">
+    <!-- FRONT -->
+    <section class="face front" id="front">
+      <div class="media" id="media">
+        <video id="vidA" class="is-active" autoplay muted playsinline preload="auto"></video>
+        <video id="vidB" muted playsinline preload="auto"></video>
+        <img id="still" alt="" />
+        <div class="fallback" id="fallback" aria-hidden="true">
+          <svg viewBox="0 0 200 200">
+            <defs>
+              <radialGradient id="cg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></radialGradient>
+            </defs>
+            <g stroke="#000" stroke-width="4" stroke-linejoin="round">
+              <rect x="18" y="18" width="164" height="164" rx="14" fill="#4a4540"/>
+              <rect x="30" y="30" width="140" height="140" rx="10" fill="#6d665d"/>
+              <g class="ring"><circle cx="100" cy="100" r="58" fill="#3b3733"/>
+                <g fill="#8a8277"><rect x="94" y="36" width="12" height="22" rx="3"/><rect x="94" y="142" width="12" height="22" rx="3"/><rect x="36" y="94" width="22" height="12" rx="3"/><rect x="142" y="94" width="22" height="12" rx="3"/></g>
+              </g>
+              <circle cx="100" cy="100" r="34" fill="#1a1715"/>
+            </g>
+            <circle class="core" id="fbCore" cx="100" cy="100" r="30" fill="url(#cg)" style="color:#ffc53d"/>
+            <g fill="#000"><circle cx="40" cy="40" r="4"/><circle cx="160" cy="40" r="4"/><circle cx="40" cy="160" r="4"/><circle cx="160" cy="160" r="4"/></g>
+            <path d="M18 168 L182 168" stroke="#000" stroke-width="3" stroke-dasharray="10 8"/>
+          </svg>
+        </div>
+      </div>
+      <div class="shade"></div><div class="scan"></div><div class="fx-breach"></div><div class="fx-funded"></div>
+
+      <div class="hud-top">
+        <span class="rarity" id="rarity">Common</span>
+        <div class="tier-name" id="tierName">The Vault</div>
+        <div class="tier-num" id="tierNum">TIER —</div>
+        <div class="ticker" id="ticker"><div class="tx" id="tx"></div></div>
+      </div>
+
+      <div class="hud-bottom" id="hudBottom">
+        <div class="core-head">
+          <span class="lbl">Core</span>
+          <span class="pct" id="pct">0%</span>
+        </div>
+        <div class="core-num" id="coreNum">€0 <small>/ €0</small></div>
+        <div class="energy"><div class="energy-fill" id="energy"></div><div class="energy-ticks"></div></div>
+        <div class="shield">
+          <span class="lbl">Shield</span>
+          <div class="dia" id="dia"></div>
+          <span class="shield-num" id="shieldNum">0 / 7</span>
+        </div>
+        <div class="shield-note" id="shieldNote"></div>
+      </div>
+      <div class="tap-hint" id="tapHint">Tap for telemetry</div>
+
+      <div class="empty" id="empty">
+        <h1>No Active Vault</h1>
+        <p>WARDEN is idling in an empty canyon. Pick a goal, set the Core Charge, and forge a new Vault.</p>
+        <button class="btn" type="button" id="forgeBtn">Forge a Vault</button>
+      </div>
+    </section>
+
+    <!-- BACK -->
+    <section class="face back" id="back">
+      <div class="hazard"></div>
+      <div class="b-head" id="bHead">
+        <div style="min-width:0">
+          <div class="b-title" id="bTitle">The Vault</div>
+          <div class="b-sub" id="bSub"></div>
+        </div>
+        <div class="b-flip">Tap ↺</div>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-tab="telemetry">Telemetry</button>
+        <button class="tab" data-tab="controls">Controls</button>
+        <button class="tab" data-tab="log">Log</button>
+        <button class="tab" data-tab="loot">Loot</button>
+        <button class="tab" data-tab="lore">Lore</button>
+      </div>
+      <div class="panel" id="p-telemetry"></div>
+      <div class="panel" id="p-controls" hidden></div>
+      <div class="panel" id="p-log" hidden></div>
+      <div class="panel" id="p-loot" hidden></div>
+      <div class="panel" id="p-lore" hidden></div>
+    </section>
+  </div>
+</div>
+
+<!-- Create Vault -->
+<div class="modal" id="createModal">
+  <form class="sheet" id="createForm" autocomplete="off">
+    <h2>Forge a Vault</h2>
+    <div class="hint">Name the loot, set the plan. WARDEN does the maths.</div>
+    <label>Vault name<input class="inp" name="name" required value="Gaming PC Vault" /></label>
+    <label>Goal<input class="inp" name="goal" required value="Gaming PC" /></label>
+    <div class="two">
+      <label>Target<input class="inp" name="target" type="number" inputmode="decimal" min="1" step="0.01" required value="3000" /></label>
+      <label>Already secured<input class="inp" name="starting" type="number" inputmode="decimal" min="0" step="0.01" value="0" /></label>
+    </div>
+    <div class="two">
+      <label>Monthly Core Charge<input class="inp" name="core" type="number" inputmode="decimal" min="1" step="0.01" required value="200" /></label>
+      <label>Currency<select class="inp" name="currency"><option>EUR</option><option>USD</option><option>GBP</option></select></label>
+    </div>
+    <label>Start date<input class="inp" name="start_date" type="date" required /></label>
+    <div class="preview" id="createPreview"></div>
+    <div class="actions-row">
+      <button class="btn ghost" type="button" data-close>Cancel</button>
+      <button class="btn" type="submit">Forge</button>
+    </div>
+  </form>
+</div>
+
+<!-- Breach confirm -->
+<div class="modal" id="breachModal">
+  <div class="sheet">
+    <h2 style="color:var(--bad)">⚠ Breach the Vault?</h2>
+    <div class="lore" id="breachText"></div>
+    <div class="box red hint" style="color:#ffc9c9">This week's Perfect Defense will be lost and your Defense Streak resets. Your tier and history stay.</div>
+    <div class="actions-row">
+      <button class="btn ghost" type="button" data-close>Keep it sealed</button>
+      <button class="btn danger" type="button" id="breachConfirm">Confirm breach</button>
+    </div>
+  </div>
+</div>
+
+<div class="splash" id="splash"></div>
+<div class="busy" id="busy"><div class="spin"></div><div id="busyText">Transmitting…</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const STATE_URL = 'data.json';
+const FALLBACK_ACTION_URL = 'https://hook.eu2.make.com/3fqg0aje41n3zr4cmhm22ldoazltpr3p';
+const PASSCODE_KEY = 'vault-passcode';
+const SEEN_KEY = 'vault-seen-events';
+const TZ = 'Europe/Amsterdam';
+const ROLLOVER = 4;
+const DAY_MS = 86400000;
+const RARITY_VAR = { Common: '--r-common', Uncommon: '--r-uncommon', Rare: '--r-rare', Epic: '--r-epic', Legendary: '--r-legendary', Mythic: '--r-mythic' };
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const $ = id => document.getElementById(id);
+const cardEl = $('card');
+let state = null;
+let flipTimer = null;
+let busy = false;
+let loadedMedia = '';
+let tickerIndex = 0;
+let tickerTimer = null;
+
+// ---------- helpers ----------
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+function money(n, cur, signed) {
+  const sym = { EUR: '€', USD: '$', GBP: '£' }[String(cur || 'EUR').toUpperCase()] || '';
+  const v = Math.round((Number(n) || 0) * 100) / 100;
+  const s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+  return (v < 0 ? '-' : signed && v > 0 ? '+' : '') + sym + s;
+}
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthLabel = mk => mk ? MONTHS[Number(mk.slice(5, 7)) - 1] + ' ' + mk.slice(0, 4) : '—';
+const dateLabel = iso => { const t = Date.parse(iso); if (isNaN(t)) return ''; return new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(t)); };
+const dayLabel = key => { if (!key) return '—'; const [y, m, d] = key.split('-').map(Number); return d + ' ' + MONTHS[m - 1] + ' ' + y; };
+function localParts(ms) {
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit' }).formatToParts(new Date(ms));
+  const g = t => Number(parts.find(p => p.type === t).value);
+  return { y: g('year'), m: g('month'), d: g('day'), h: g('hour') };
+}
+const pad = n => String(n).padStart(2, '0');
+const addDays = (k, n) => { const [y, m, d] = k.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, d) + n * DAY_MS); return t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate()); };
+const dowOf = k => { const [y, m, d] = k.split('-').map(Number); return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; };
+function gameDay(ms) { const p = localParts(ms); const k = p.y + '-' + pad(p.m) + '-' + pad(p.d); return p.h < ROLLOVER ? addDays(k, -1) : k; }
+const weekOf = ms => { const g = gameDay(ms); return addDays(g, -dowOf(g)); };
+function hashOf(s) { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let a = hashOf(seed); return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pickR = (r, list) => list[Math.floor(r() * list.length)];
+function setRarity(el, rarity) { el.style.setProperty('--rar', 'var(' + (RARITY_VAR[rarity] || '--r-common') + ')'); }
+function campaign(target, starting, core) {
+  const remaining = Math.max(0, target - starting);
+  const months = core > 0 ? remaining / core : 0;
+  const weeks = remaining > 0 ? Math.max(1, Math.round(months * 52 / 12)) : 1;
+  const forms = Math.min(12, Math.max(8, Math.round(weeks / 6)));
+  return { remaining, months_needed: Math.max(0, Math.ceil(months - 1e-9)), weeks, forms, per_evolution: Math.max(1, Math.ceil(weeks / forms)) };
+}
+
+// ---------- the week, from the page's own clock ----------
+// Shield Integrity needs no daily job: it is the Amsterdam game day of the
+// week (Monday 04:00 = 1/7), unless a breach landed this week.
+function shieldOf(v, now) {
+  const week = weekOf(now);
+  const today = dowOf(gameDay(now));
+  const startKey = (v.started_at || '').slice(0, 10);
+  let breachDay = null;
+  for (const e of (state && state.events) || []) {
+    if (e.type !== 'BREACH') continue;
+    const t = Date.parse(e.at); if (isNaN(t) || weekOf(t) !== week) continue;
+    const d = dowOf(gameDay(t));
+    if (breachDay === null || d < breachDay) breachDay = d;
+  }
+  if (breachDay === null && v.breach && v.breach.week === week && v.breach.last_at) {
+    const t = Date.parse(v.breach.last_at); if (!isNaN(t)) breachDay = dowOf(gameDay(t));
+  }
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const key = addDays(week, i);
+    let s;
+    if (breachDay !== null && i === breachDay) s = 'hit';
+    else if (breachDay !== null && i > breachDay) s = i <= today ? 'dead' : 'dead';
+    else if (i < today) s = 'ok';
+    else if (i === today) s = 'today';
+    else s = 'future';
+    days.push({ i, key, s, pre: startKey && key < startKey });
+  }
+  const armed = !startKey || gameDay(now) >= startKey;
+  return { week, today, breachDay, breached: breachDay !== null, integrity: breachDay !== null ? 0 : today + 1, days, armed, startKey };
+}
+
+// ---------- novelty: raids and WARDEN ----------
+const GANGS = ['Rustjaw Raiders', 'Dune Vultures', 'Chrome Widows', 'Scrapper Kings', 'Bonefire Crew', 'Static Howlers', 'Sandgrin Syndicate', 'Gutterglass Gang', 'Mag-Rail Nomads', 'The Unpaid Interns'];
+const RAID_TRIES = ['tried the front door with a crowbar', 'sent a drone to sniff the core', 'offered a "limited-time deal"', 'dug a tunnel under the east wall', 'tried to guilt-trip WARDEN', 'showed up with a flash sale flyer', 'attempted a "just this once" hack', 'rolled a fake delivery crate to the door', 'whispered "you deserve a treat"', 'brought a very convincing cake'];
+const RAID_ENDS = ['Shield held.', 'Bounced right off.', 'WARDEN laughed them out of the canyon.', 'Repelled without breaking a sweat.', 'They left a very sad review.', 'The sentries did not even look up.'];
+function raidOf(dayKey) {
+  const r = rng('raid:' + dayKey);
+  return { gang: pickR(r, GANGS), tried: pickR(r, RAID_TRIES), end: pickR(r, RAID_ENDS) };
+}
+function transmissions(v, sh, now) {
+  const r = rng('warden:' + gameDay(now));
+  const cur = v.currency;
+  const out = [];
+  const raid = raidOf(gameDay(now));
+  if (!sh.armed) out.push('Vault arming. Campaign starts ' + dayLabel(sh.startKey) + '. Raiders are already reading the brochure.');
+  if (sh.breached) {
+    out.push(pickR(r, ['Hull breach logged. I am not angry. I am recalculating.', 'Shield compromised. Evolution locked until Monday. Tape is holding. Mostly.', 'Someone opened the door from the inside. Interesting strategy.', 'This cycle is lost. Next Monday the shield comes back clean. Deep breaths.']));
+  } else if (sh.armed) {
+    if (sh.today === 0) out.push(pickR(r, ['Monday. Fresh shield cycle online. 1/7 and climbing.', 'New week, new cycle. Raiders are still hungover from the weekend.', 'Evaluation complete. Shields rebooted. Let us go again.']));
+    else if (sh.today === 6) out.push(pickR(r, ['Final watch. Hold until Monday 04:00 and the week is yours.', 'Sunday. One more night between you and a Perfect Defense.', 'Last day of the cycle. The loot table is warming up.']));
+    else out.push(pickR(r, ['Shield integrity ' + sh.integrity + '/7. Nothing gets in on my watch.', 'All quiet on the canyon wall. Suspiciously quiet.', 'Core humming at a pleasant ' + Math.round(v.funding_pct) + '%.', 'Day ' + sh.integrity + ' of 7. Stay boring. Boring is how vaults win.']));
+    out.push('Raid report: the ' + raid.gang + ' ' + raid.tried + '. ' + raid.end);
+  }
+  if (v.funded) out.push('VAULT KEY FORGED. The door is ready when you are. Spending it is not a breach, it is the whole point.');
+  else {
+    if (v.charge_advantage > 0) out.push(pickR(r, ['Charge Advantage ' + money(v.charge_advantage, cur, true) + '. We are ahead of the plan and I am insufferable about it.', 'Running ' + money(v.charge_advantage, cur, true) + ' ahead of baseline. Future-you says thanks.']));
+    else if (v.charge_advantage < 0) out.push('We are ' + money(-v.charge_advantage, cur) + ' behind baseline. A Core Charge would cheer the core right up.');
+    const left = Math.max(0, (v.core_charge || 0) - ((v.month && v.month.core_paid) || 0));
+    if (left > 0 && sh.armed) out.push(money(left, cur) + ' of this month\'s Core Charge still to go.');
+    if (v.months_ahead > 0) out.push('Projected unlock ' + monthLabel(v.projected_completion) + ', ' + v.months_ahead + ' month' + (v.months_ahead > 1 ? 's' : '') + ' ahead of plan.');
+  }
+  if (v.defense_streak >= 3) out.push(pickR(r, [v.defense_streak + ' Perfect Defenses in a row. The raiders have started a support group.', 'Streak ' + v.defense_streak + '. Loot rolls are getting spicy.']));
+  if (v.next_form) {
+    const need = Math.max(0, v.weeks_per_evolution - v.evolution_charge);
+    out.push(need + ' more Perfect Defense' + (need === 1 ? '' : 's') + ' until ' + v.next_form.name + '.');
+  }
+  out.push(pickR(r, [
+    'Reminder: the best loot is the loot you still have.', 'I polished the core. It did not need it. I needed it.', 'A sand skiff drove past twice today. I have its plates.',
+    'Scanning for impulse purchases in a three-kilometre radius.', 'Fun fact: vaults do not have a "treat yourself" button. I checked.', 'The canyon echoes. It sounds like compound interest.',
+    'Somebody left a note on the door: "nice vault". Blushing. Metaphorically.', 'Weather: 38°C, dust, zero breaches. Perfect vault weather.'
+  ]));
+  return out;
+}
+function runTicker(lines) {
+  clearTimeout(tickerTimer);
+  const tx = $('tx');
+  if (!lines.length) { tx.classList.remove('on'); return; }
+  const show = () => {
+    const line = lines[tickerIndex % lines.length];
+    tx.classList.remove('on');
+    setTimeout(() => { tx.innerHTML = '<span class="who">WARDEN ▸</span> ' + esc(line); tx.classList.add('on'); }, 400);
+    tickerTimer = setTimeout(() => { tickerIndex++; show(); }, 9000);
+  };
+  show();
+}
+$('ticker').addEventListener('click', e => { e.stopPropagation(); tickerIndex++; renderFront(); });
+
+// ---------- media ----------
+const vids = [$('vidA'), $('vidB')];
+let activeVid = 0, fading = false;
+const FADE_MS = 900, LEAD_MS = 150;
+function setMedia(form) {
+  const key = (form && (form.video || form.image)) || 'none';
+  if (key === loadedMedia) return;
+  loadedMedia = key;
+  const still = $('still');
+  $('fallback').classList.toggle('on', key === 'none');
+  still.classList.remove('is-active');
+  vids.forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); v.classList.remove('is-active'); });
+  if (form && form.video) {
+    if (form.poster) { still.src = form.poster; still.classList.add('is-active'); }
+    activeVid = 0; fading = false;
+    vids.forEach(v => { v.src = form.video; v.load(); });
+    const first = vids[0];
+    const start = () => first.play().then(() => { first.classList.add('is-active'); still.classList.remove('is-active'); }).catch(() => {});
+    if (first.readyState >= 2) start(); else first.addEventListener('canplay', start, { once: true });
+  } else if (form && form.image) {
+    still.src = form.image; still.classList.add('is-active');
+  }
+}
+function crossfade() {
+  if (fading) return;
+  const out = vids[activeVid], inc = vids[1 - activeVid];
+  if (!inc.src) return;
+  fading = true;
+  try { inc.currentTime = 0; } catch (e) {}
+  inc.style.zIndex = 1; out.style.zIndex = 0;
+  inc.play().then(() => {
+    requestAnimationFrame(() => inc.classList.add('is-active'));
+    setTimeout(() => { out.classList.remove('is-active'); out.pause(); try { out.currentTime = 0; } catch (e) {} inc.style.zIndex = 0; activeVid = 1 - activeVid; fading = false; }, FADE_MS + 40);
+  }).catch(() => { fading = false; });
+}
+(function loop() {
+  const a = vids[activeVid];
+  if (!fading && a.src && a.readyState >= 2 && isFinite(a.duration) && a.duration > 0 && a.currentTime > 0 && (a.duration - a.currentTime) * 1000 <= FADE_MS + LEAD_MS) crossfade();
+  requestAnimationFrame(loop);
+})();
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !cardEl.classList.contains('is-flipped')) { const a = vids[activeVid]; if (a.src && a.paused) a.play().catch(() => {}); } });
+
+// ---------- render: front ----------
+function renderFront() {
+  const front = $('front');
+  const v = state && state.vault;
+  $('empty').classList.toggle('on', !v);
+  ['hudBottom', 'ticker', 'tapHint'].forEach(id => { $(id).style.visibility = v ? 'visible' : 'hidden'; });
+  if (!v) {
+    setRarity(document.documentElement, 'Common');
+    $('rarity').textContent = 'Standby'; $('tierName').textContent = 'The Vault'; $('tierNum').textContent = 'NO SIGNAL';
+    front.classList.remove('breached', 'funded');
+    setMedia(null);
+    clearTimeout(tickerTimer);
+    return;
+  }
+  const now = Date.now();
+  const sh = shieldOf(v, now);
+  setRarity(document.documentElement, v.form.rarity);
+  $('fbCore').style.color = getComputedStyle(document.documentElement).getPropertyValue(RARITY_VAR[v.form.rarity] || '--r-common');
+  $('rarity').textContent = v.form.rarity;
+  $('tierName').textContent = v.form.name;
+  $('tierNum').textContent = 'TIER ' + v.tier + (v.tier >= v.form_count ? ' · FINAL FORM' : '');
+  $('coreNum').innerHTML = esc(money(v.balance, v.currency)) + ' <small>/ ' + esc(money(v.target, v.currency)) + '</small>';
+  $('pct').textContent = (Math.round(v.funding_pct * 10) / 10) + '%';
+  $('energy').style.width = Math.min(100, v.funding_pct) + '%';
+  $('dia').innerHTML = sh.days.map(d => {
+    const cls = !sh.armed || d.pre ? 'pre' : d.s === 'hit' ? 'hit' : d.s === 'dead' ? 'dead' : (d.s === 'ok' || d.s === 'today') ? 'on' + (d.s === 'today' ? ' today' : '') : '';
+    const mark = d.s === 'hit' ? '✕' : '';
+    return '<div class="d ' + cls + '" title="' + DAYS[d.i] + '"><span>' + mark + '</span></div>';
+  }).join('');
+  $('shieldNum').textContent = sh.armed ? sh.integrity + ' / 7' : 'ARMING';
+  const note = $('shieldNote');
+  if (v.funded) { note.className = 'shield-note ok'; note.textContent = '★ Vault Key Forged · ready to open'; }
+  else if (sh.breached) { note.className = 'shield-note'; note.textContent = 'Shield compromised · evolution blocked this cycle'; }
+  else if (!sh.armed) { note.className = 'shield-note ok'; note.textContent = 'Campaign starts ' + dayLabel(sh.startKey); }
+  else { note.className = 'shield-note ok'; note.textContent = ''; }
+  front.classList.toggle('breached', sh.breached);
+  front.classList.toggle('funded', !!v.funded);
+  setMedia(v.form);
+  runTicker(transmissions(v, sh, now));
+}
+
+// ---------- render: back ----------
+const stat = (k, v, cls, wide) => '<div class="stat' + (wide ? ' wide' : '') + '"><div class="k">' + esc(k) + '</div><div class="v ' + (cls || '') + '">' + v + '</div></div>';
+function renderBack() {
+  const v = state && state.vault;
+  $('bTitle').textContent = v ? v.name : 'The Vault';
+  $('bSub').textContent = v ? (v.goal + ' · ' + v.form.name + ' · Tier ' + v.tier + '/' + v.form_count) : 'No active campaign';
+  renderTelemetry(v); renderControls(v); renderLog(); renderLoot(); renderLore(v);
+}
+function renderTelemetry(v) {
+  const el = $('p-telemetry');
+  if (!v) { el.innerHTML = '<div class="empty-note">No active Vault. Flip back and forge one.</div>'; return; }
+  const cur = v.currency, now = Date.now(), sh = shieldOf(v, now);
+  const adv = v.charge_advantage;
+  const pips = Array.from({ length: v.weeks_per_evolution }, (_, i) => '<div class="pip' + (i < v.evolution_charge ? ' on' : '') + '"></div>').join('');
+  const need = Math.max(0, v.weeks_per_evolution - v.evolution_charge);
+  const week = sh.days.map(d => {
+    const cls = d.s === 'hit' ? 'hit' : d.s === 'ok' || d.s === 'today' ? 'ok' : '';
+    const mark = !sh.armed || d.pre ? '·' : d.s === 'hit' ? '✕' : d.s === 'dead' ? '—' : d.s === 'ok' ? '✓' : d.s === 'today' ? '◆' : '◇';
+    return '<div class="wd ' + cls + (d.s === 'today' ? ' today' : '') + '"><b>' + DAYS[d.i] + '</b><span>' + mark + '</span></div>';
+  }).join('');
+  const raids = sh.days.filter(d => d.i <= sh.today && sh.armed && !d.pre).map(d => {
+    const r = raidOf(d.key);
+    const res = d.s === 'hit' ? 'got in. Vault breached.' : d.s === 'dead' ? 'wandered in through the open door.' : r.tried + '. ' + r.end;
+    return '<div class="raid"><b>' + DAYS[d.i] + ':</b> ' + esc(r.gang) + ' ' + esc(res) + '</div>';
+  }).reverse().slice(0, 3).join('');
+  el.innerHTML =
+    '<div class="sec">Vault Energy</div><div class="grid">' +
+      stat('Vault Energy', esc(money(v.balance, cur))) + stat('Target', esc(money(v.target, cur))) +
+      stat('Funding', v.funding_pct + '%') + stat('Remaining', esc(money(v.remaining, cur))) +
+      stat('Charge Advantage', esc(money(adv, cur, true)), adv > 0 ? 'pos' : adv < 0 ? 'neg' : '') + stat('Expected by now', esc(money(v.expected_now, cur))) +
+    '</div>' +
+    '<div class="sec">Charging</div><div class="grid">' +
+      stat('Monthly Core Charge', esc(money(v.core_charge, cur))) + stat('Core paid this month', esc(money(v.month.core_paid, cur)) + ' / ' + esc(money(v.core_charge, cur))) +
+      stat('Overcharge this month', esc(money(v.month.overcharge, cur))) + stat('Lifetime Overcharge', esc(money(v.lifetime_overcharge, cur))) +
+      stat('Projected unlock', esc(monthLabel(v.projected_completion)) + (v.months_ahead ? ' <small style="color:' + (v.months_ahead > 0 ? 'var(--good)' : 'var(--bad)') + '">(' + (v.months_ahead > 0 ? v.months_ahead + ' mo early' : -v.months_ahead + ' mo late') + ')</small>' : '')) +
+      stat('Baseline completion', esc(monthLabel(v.baseline_completion))) +
+    '</div>' +
+    '<div class="sec">Evolution</div><div class="grid">' +
+      '<div class="stat wide"><div class="k">' + esc(v.form.name) + ' · Tier ' + v.tier + ' of ' + v.form_count + '</div>' +
+        '<div class="v">' + (v.next_form ? 'Evolution Charge ' + v.evolution_charge + ' / ' + v.weeks_per_evolution : 'Final form reached') + '</div>' +
+        '<div class="pips">' + pips + '</div>' +
+        '<div class="hint">' + (v.next_form ? need + ' more Perfect Defense' + (need === 1 ? '' : 's') + ' to transform into ' + esc(v.next_form.name) + '.' : 'Every Perfect Defense still drops loot.') + '</div></div>' +
+      stat('Defense Streak', v.defense_streak + (v.best_streak ? ' <small style="color:var(--dim)">best ' + v.best_streak + '</small>' : '')) + stat('Perfect Defenses', v.perfect_defenses) +
+      stat('Campaign', '~' + v.expected_weeks + ' weeks') + stat('Started', esc(dayLabel((v.started_at || '').slice(0, 10)))) +
+    '</div>' +
+    '<div class="sec">Shield Integrity · ' + (sh.armed ? sh.integrity + '/7' : 'arming') + (sh.breached ? ' · compromised' : '') + '</div>' +
+    '<div class="week">' + week + '</div>' + raids;
+}
+function renderControls(v) {
+  const el = $('p-controls');
+  if (!v) { el.innerHTML = '<div class="box"><button class="btn wide" type="button" data-act="create">Forge a Vault</button></div>'; bindControls(); return; }
+  const left = Math.max(0, v.core_charge - v.month.core_paid);
+  el.innerHTML =
+    '<div class="sec">Inject Funds</div>' +
+    '<div class="box"><div class="form-row"><input class="inp" id="injAmt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="' + (left > 0 ? left : 50) + '" />' +
+      '<button class="btn good" type="button" data-act="inject">Inject</button></div>' +
+      '<div class="hint">' + (left > 0 ? esc(money(left, v.currency)) + ' of this month\'s Core Charge left. Anything above that counts as Overcharge.' : 'Core Charge done for this month. Every injection now is Overcharge.') + '</div></div>' +
+    (v.funded ? '<div class="sec">Vault Key</div><div class="box gold"><div class="lore">The goal is fully funded. Opening the Vault is a win, not a breach.</div><div style="margin-top:10px"><button class="btn gold wide" type="button" data-act="open">Open Vault</button></div></div>' : '') +
+    '<div class="sec">Core Charge</div>' +
+    '<div class="box"><div class="form-row"><input class="inp" id="coreAmt" type="number" inputmode="decimal" min="1" step="0.01" placeholder="' + v.core_charge + '" />' +
+      '<button class="btn ghost" type="button" data-act="baseline">Recalibrate</button></div>' +
+      '<div class="hint">Changes the plan from this month on. Past months and past Overcharge stay as they were.</div></div>' +
+    '<div class="sec" style="color:var(--bad)">Breach</div>' +
+    '<div class="box red"><div class="form-row"><input class="inp" id="brAmt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="Amount" />' +
+      '<select class="inp" id="brWhy"><option>Unexpected expense</option><option>Changed priority</option><option>Impulse purchase</option><option>Other</option></select></div>' +
+      '<div style="margin-top:8px"><button class="btn danger wide" type="button" data-act="breach">⚠ Breach Vault</button></div></div>' +
+    '<div class="hint" style="margin-top:14px"><a href="#" data-act="passcode" style="color:var(--dim)">Change passcode on this device</a></div>';
+  bindControls();
+}
+function bindControls() {
+  $('p-controls').querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); onAct(b.dataset.act); }));
+}
+const ICON = { CORE_CHARGE: '⚡', OVERCHARGE: '✦', BREACH: '⚠', PERFECT_DEFENSE: '◆', TIER_UP: '▲', VAULT_OPENED: '★', BASELINE_CHANGED: '⚙' };
+function renderLog() {
+  const el = $('p-log');
+  const ev = (state && state.events) || [];
+  const cur = state && state.vault ? state.vault.currency : 'EUR';
+  if (!ev.length) { el.innerHTML = '<div class="empty-note">No events yet. The canyon is quiet.</div>'; return; }
+  el.innerHTML = '<ul class="log">' + ev.slice(0, 40).map(e => {
+    const signed = e.type === 'BREACH' ? -Math.abs(e.amount || 0) : e.amount;
+    const amt = (e.type === 'CORE_CHARGE' || e.type === 'OVERCHARGE' || e.type === 'BREACH') ? '<span class="amt" style="color:' + (e.type === 'BREACH' ? 'var(--bad)' : 'var(--good)') + '">' + esc(money(signed, cur, true)) + '</span>' : '';
+    let sub = dateLabel(e.at);
+    if (e.reason) sub += ' · ' + e.reason;
+    if (e.type === 'PERFECT_DEFENSE' && e.meta) sub += ' · streak ' + e.meta.streak + (e.meta.loot ? ' · ' + e.meta.loot.rarity + ' loot' : '');
+    return '<li><div class="ic ' + esc(e.type) + '">' + (ICON[e.type] || '•') + '</div><div><div class="t">' + esc(e.title) + '</div><div class="s">' + esc(sub) + '</div></div>' + amt + '</li>';
+  }).join('') + '</ul>';
+}
+const lootCard = l => '<div class="loot-card" style="--lc:var(' + (RARITY_VAR[l.rarity] || '--r-common') + ')"><div><div class="n">' + esc(l.name) + '</div><div class="f">' + esc(l.rarity) + ' · ' + esc(l.flavor || '') + '</div></div>' + (l.week ? '<div class="w">wk ' + esc(l.week.slice(5)) + '</div>' : '') + '</div>';
+function renderLoot() {
+  const el = $('p-loot');
+  const loot = (state && state.loot) || [];
+  const arch = (state && state.archive) || [];
+  let html = '<div class="sec">Weekly drops</div>' + (loot.length ? loot.map(lootCard).join('') : '<div class="empty-note">Every Perfect Defense drops a piece of loot on Monday. None yet.</div>');
+  html += '<div class="sec" style="margin-top:18px">Loot Archive · opened Vaults</div>';
+  html += arch.length ? arch.map(a => '<div class="loot-card" style="--lc:var(' + (RARITY_VAR[a.rarity] || '--r-common') + ')"><div><div class="n">★ ' + esc(a.goal || a.name) + '</div><div class="f">' + esc(money(a.amount, a.currency)) + ' · ' + esc(a.form) + ' (tier ' + a.tier + ') · ' + a.perfect + ' Perfect Defenses</div></div><div class="w">' + esc((a.opened_at || '').slice(0, 10)) + '</div></div>').join('') : '<div class="empty-note">Opened Vaults land here, trophies of loot claimed.</div>';
+  el.innerHTML = html;
+}
+function renderLore(v) {
+  const el = $('p-lore');
+  const forms = (state && state.forms) || [];
+  const count = v ? v.form_count : forms.length;
+  const tier = v ? v.tier : 0;
+  const cur = forms.find(f => f.tier === tier);
+  let html = v && cur ? '<div class="sec">' + esc(cur.name) + '</div><div class="lore">' + esc(cur.lore) + '</div>' : '';
+  html += '<div class="sec" style="margin-top:16px">Forms of this campaign</div><ul class="log form-list">';
+  html += forms.filter(f => f.tier <= count).map(f => {
+    const known = f.tier <= tier + 1;
+    return '<li class="' + (f.tier === tier ? 'cur' : '') + (known ? '' : ' locked') + '"><span class="tn">' + f.tier + '</span><span style="width:10px;height:10px;transform:rotate(45deg);border:2px solid #000;background:var(' + (RARITY_VAR[f.rarity] || '--r-common') + ');opacity:' + (known ? 1 : .35) + '"></span><span class="fn">' + (known ? esc(f.name) : '???????') + '</span>' + (f.tier === tier ? '<span style="margin-left:auto;font-size:10px;color:var(--hud)">CURRENT</span>' : f.tier < tier ? '<span style="margin-left:auto;font-size:10px;color:var(--dim)">✓</span>' : '') + '</li>';
+  }).join('') + '</ul>';
+  html += '<div class="hint" style="margin-top:12px">WARDEN is the vault\'s caretaker AI. It is sarcastic, loyal, and allergic to impulse purchases.</div>';
+  el.innerHTML = html;
+}
+// data.json may be from last month: this month's Core only counts in its own month.
+function monthNow() { const p = localParts(Date.now()); return p.y + '-' + pad(p.m); }
+function normalise(st) {
+  const v = st && st.vault;
+  if (v && v.month && v.month.key !== monthNow()) v.month = { key: monthNow(), core_paid: 0, overcharge: 0 };
+  return st;
+}
+function render() { normalise(state); renderFront(); renderBack(); checkSplash(); }
+
+// ---------- flip ----------
+function setFlipped(f) {
+  clearTimeout(flipTimer);
+  cardEl.classList.toggle('is-flipped', f);
+  cardEl.setAttribute('aria-pressed', String(f));
+  flipTimer = setTimeout(() => cardEl.classList.toggle('show-back', f), 500);
+  if (!f) { const a = vids[activeVid]; if (a.src) a.play().catch(() => {}); }
+}
+cardEl.addEventListener('click', e => {
+  if (busy) return;
+  const flipped = cardEl.classList.contains('is-flipped');
+  if (e.target.closest('button, input, select, a, .ticker')) return;
+  if (flipped && !e.target.closest('.b-head, .hazard')) return; // on the back only the header flips back
+  if (!state || !state.vault) { if (!flipped) return; }
+  setFlipped(!flipped);
+});
+cardEl.addEventListener('keydown', e => { if (e.target === cardEl && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setFlipped(!cardEl.classList.contains('is-flipped')); } });
+$('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  e.stopPropagation();
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  ['telemetry', 'controls', 'log', 'loot', 'lore'].forEach(n => { $('p-' + n).hidden = n !== t.dataset.tab; });
+});
+
+// ---------- actions ----------
+function toast(msg, err) { const t = $('toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : ''); clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', 4200); }
+function passcode(force) {
+  let p = store.get(PASSCODE_KEY);
+  if (!p || force) { p = (prompt('Vault passcode') || '').trim(); if (p) store.set(PASSCODE_KEY, p); }
+  return p;
+}
+async function send(fields, label) {
+  const code = passcode(); if (!code) return null;
+  busy = true; $('busyText').textContent = label || 'Transmitting…'; $('busy').classList.add('on');
+  try {
+    const url = (state && state.action_url) || FALLBACK_ACTION_URL;
+    const res = await fetch(url, { method: 'POST', body: new URLSearchParams(Object.assign({ passcode: code }, fields)) });
+    const text = await res.text();
+    let data; try { data = JSON.parse(text); } catch (e) { throw new Error('Unexpected reply from the Vault (' + res.status + ')'); }
+    const result = data.result || data;
+    if (!result.ok) {
+      if (result.code === 'bad_passcode') store.set(PASSCODE_KEY, '');
+      toast(result.message || 'Rejected', true); return null;
+    }
+    if (data.state && data.state.generated_at) { state = data.state; render(); }
+    setTimeout(refresh, 20000);
+    return result;
+  } catch (e) {
+    toast(e.message || 'Transmission failed', true); return null;
+  } finally {
+    busy = false; $('busy').classList.remove('on');
+  }
+}
+let pendingBreach = null;
+async function onAct(act) {
+  const v = state && state.vault;
+  if (act === 'passcode') { passcode(true); return; }
+  if (act === 'create') { openCreate(); return; }
+  if (act === 'inject') {
+    const amt = Number($('injAmt').value || $('injAmt').placeholder);
+    if (!(amt > 0)) { toast('Enter an amount', true); return; }
+    const r = await send({ action: 'inject', amount: amt }, 'Charging core…');
+    if (r) splashInject(r, v.currency);
+  } else if (act === 'baseline') {
+    const amt = Number($('coreAmt').value);
+    if (!(amt > 0)) { toast('Enter the new monthly Core Charge', true); return; }
+    const r = await send({ action: 'baseline', core: amt }, 'Recalibrating…');
+    if (r) splash('Core Recalibrated', 'var(--r-rare)', [money(r.from, v.currency) + ' → ' + money(r.to, v.currency) + ' / month', 'Baseline completion ' + monthLabel(r.baseline_completion), 'Projected unlock ' + monthLabel(r.projected)]);
+  } else if (act === 'breach') {
+    const amt = Number($('brAmt').value);
+    if (!(amt > 0)) { toast('Enter the amount you take out', true); return; }
+    pendingBreach = { amount: amt, reason: $('brWhy').value };
+    $('breachText').textContent = 'Take ' + money(amt, v.currency) + ' out of ' + v.name + ' (' + pendingBreach.reason.toLowerCase() + ')?';
+    $('breachModal').classList.add('on');
+  } else if (act === 'open') {
+    if (!confirm('Open the Vault and claim ' + v.goal + '? This completes the campaign.')) return;
+    const r = await send({ action: 'open' }, 'Unsealing…');
+    if (r) splash('Vault Opened', 'var(--hud)', ['★ ' + (r.goal || v.goal) + ' ★', money(r.amount, v.currency) + ' claimed', 'Tier ' + r.tier + ' reached · no breach recorded'], 'Moved to the Loot Archive');
+  }
+}
+$('breachConfirm').addEventListener('click', async () => {
+  $('breachModal').classList.remove('on');
+  const v = state.vault;
+  const r = await send({ action: 'breach', amount: pendingBreach.amount, reason: pendingBreach.reason, confirm: 'BREACH' }, 'Opening the door…');
+  if (r) splash('Shield Compromised', 'var(--bad)', ['-' + money(r.amount, v.currency) + ' removed', 'Evolution blocked this cycle', r.streak_lost ? 'Defense Streak of ' + r.streak_lost + ' lost' : 'Tier and history intact'], 'Next Monday starts a clean cycle');
+});
+function splashInject(r, cur) {
+  const lines = ['+' + money(r.amount, cur) + ' injected'];
+  if (r.core > 0) lines.push('Core Charge ' + money(r.core, cur, true));
+  if (r.over > 0) lines.push('Overcharge ' + money(r.over, cur, true));
+  lines.push('Charge Advantage ' + money(r.charge_advantage, cur, true));
+  if (r.months_earlier > 0) lines.push('Projected unlock ' + r.months_earlier + ' month' + (r.months_earlier > 1 ? 's' : '') + ' earlier');
+  else lines.push('Projected unlock ' + monthLabel(r.projected));
+  if (r.funded) splash('Vault Key Forged', 'var(--hud)', lines, 'Open the Vault from Controls');
+  else splash(r.over > 0 ? 'Overcharge Detected' : 'Core Charged', r.over > 0 ? 'var(--r-epic)' : 'var(--r-rare)', lines);
+}
+function splash(title, color, lines, sub, extra) {
+  const el = $('splash');
+  el.style.setProperty('--sc', color);
+  el.innerHTML = '<div><div class="big">' + esc(title) + '</div><div class="lines">' + (lines || []).map(l => '<div>' + esc(l) + '</div>').join('') + '</div>' + (extra || '') + '<div class="sub">' + esc(sub || 'Tap to continue') + '</div></div>';
+  el.classList.add('on');
+}
+$('splash').addEventListener('click', () => { $('splash').classList.remove('on'); setTimeout(checkSplash, 300); });
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.modal').classList.remove('on')));
+
+// Monday news: show each Perfect Defense, tier-up and lost week once per device.
+function checkSplash() {
+  if (!state || !state.vault || $('splash').classList.contains('on') || busy) return;
+  let seen = [];
+  try { seen = JSON.parse(store.get(SEEN_KEY) || '[]'); } catch (e) {}
+  const first = !store.get(SEEN_KEY);
+  const news = (state.events || []).filter(e => e.type === 'PERFECT_DEFENSE' || e.type === 'TIER_UP');
+  if (first) { store.set(SEEN_KEY, JSON.stringify(news.map(e => e.id))); return; }
+  const fresh = news.filter(e => seen.indexOf(e.id) < 0).reverse();
+  if (!fresh.length) return;
+  const e = fresh.find(x => x.type === 'TIER_UP') || fresh[0];
+  seen.push(e.id);
+  store.set(SEEN_KEY, JSON.stringify(seen.slice(-200)));
+  if (e.type === 'TIER_UP') {
+    splash('Vault Evolved', 'var(--r-legendary)', [(e.meta && e.meta.from_form ? e.meta.from_form + ' → ' : '') + (e.meta && e.meta.form || 'New form'), 'Tier ' + (e.meta ? e.meta.to : '')], 'A new form stands in the canyon');
+  } else {
+    const l = e.meta && e.meta.loot;
+    splash('Perfect Defense', 'var(--good)', ['Week of ' + dayLabel(e.meta ? e.meta.week : ''), 'Defense Streak ' + (e.meta ? e.meta.streak : ''), 'Evolution Charge ' + (e.meta ? e.meta.charge + ' / ' + e.meta.per_evolution : '')], 'Loot drop', l ? lootCard(l) : '');
+  }
+}
+
+// ---------- create ----------
+function openCreate() {
+  const f = $('createForm');
+  if (!f.start_date.value) f.start_date.value = gameDay(Date.now());
+  updatePreview();
+  $('createModal').classList.add('on');
+}
+function updatePreview() {
+  const f = $('createForm');
+  const t = Number(f.target.value), s = Number(f.starting.value || 0), c = Number(f.core.value), cur = f.currency.value;
+  if (!(t > 0) || !(c > 0) || s >= t) { $('createPreview').textContent = 'Enter a target above the starting amount and a Core Charge above zero.'; return; }
+  const k = campaign(t, s, c);
+  const start = f.start_date.value || gameDay(Date.now());
+  const [y, m] = start.split('-').map(Number);
+  const endT = y * 12 + (m - 1) + Math.max(0, k.months_needed - 1);
+  const end = MONTHS[endT % 12] + ' ' + Math.floor(endT / 12);
+  $('createPreview').innerHTML = 'Remaining <b>' + esc(money(k.remaining, cur)) + '</b> · <b>' + k.months_needed + ' months</b> (~' + k.weeks + ' weeks)<br>Expected completion <b>' + end + '</b><br><b>' + k.forms + '</b> major forms · <b>' + k.per_evolution + '</b> Perfect Defenses per evolution';
+}
+$('createForm').addEventListener('input', updatePreview);
+$('createForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target;
+  const fields = { action: 'create' };
+  ['name', 'goal', 'target', 'starting', 'core', 'currency', 'start_date'].forEach(n => { fields[n] = f[n].value; });
+  $('createModal').classList.remove('on');
+  const r = await send(fields, 'Forging vault…');
+  if (r) splash('Vault Forged', 'var(--hud)', [fields.name, r.campaign.months_needed + ' months · ~' + r.campaign.weeks + ' weeks', r.campaign.forms + ' forms · ' + r.campaign.per_evolution + ' Perfect Defenses each'], 'WARDEN is generating the first form');
+});
+$('forgeBtn').addEventListener('click', e => { e.stopPropagation(); openCreate(); });
+
+// ---------- data ----------
+async function refresh() {
+  if (busy) return;
+  try {
+    const res = await fetch(STATE_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const fetched = await res.json();
+    // GitHub Pages can lag behind the state an action just returned.
+    if (state && state.generated_at && fetched.generated_at && fetched.generated_at < state.generated_at) return;
+    state = fetched;
+    render();
+  } catch (e) { console.error('Vault refresh failed', e); }
+}
+refresh();
+setInterval(refresh, 120000);
+setInterval(() => { if (state) { renderFront(); if (cardEl.classList.contains('is-flipped')) renderTelemetry(state.vault); } }, 60000);
+</script>
+</body>
+</html>
