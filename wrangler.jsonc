@@ -1,0 +1,10 @@
+// This card as a Cloudflare Worker with static assets: the repo's pages,
+// served at https://vaultquest.quest-engine.workers.dev (since 1 Oct 2026; GitHub
+// Pages serves the same files until the move is finished:
+// rdecaste/quest-engine docs/cards-move.md). Deploy: npx wrangler deploy.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vaultquest",
+  "compatibility_date": "2026-09-20",
+  "assets": { "directory": "./" }
+}

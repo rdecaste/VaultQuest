@@ -1,0 +1,16 @@
+# Not part of the published card (wrangler.jsonc's assets).
+.git
+.github
+.claude
+.assetsignore
+.gitignore
+.nojekyll
+wrangler.jsonc
+node_modules
+README.md
+docs
+backup
+make
+overlay-test.html
+*.json
+.wrangler
