@@ -197,6 +197,56 @@ select.inp{font-size:13px}
 .busy.on{display:flex}
 .busy .spin{width:56px;height:56px;border:4px solid rgba(255,197,61,.25);border-top-color:var(--hud);border-radius:50%;animation:spin 800ms linear infinite}
 .busy div:last-child{font:700 11px/1 var(--mono);letter-spacing:.24em;color:var(--hud);text-transform:uppercase}
+/* ---------- NIGHTLY WATCH (front) and LOCKED LOOT (back) ---------- */
+:root{--ember:#ff7a1a;--ice:#7fd8ff}
+.watch{margin-top:12px;padding:9px 10px 10px;border:2px solid #000;border-radius:8px;background:rgba(10,6,4,.78);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:3px 3px 0 #000;pointer-events:auto;cursor:auto}
+.watch[hidden]{display:none}
+.watch-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.watch-streak{font:700 12px/1 var(--mono);color:var(--ember);text-shadow:1px 1px 0 #000;white-space:nowrap}
+.watch-q{margin:6px 0 8px;font:600 12px/1.35 var(--mono);color:#ffe7b0}
+.embers{display:flex;gap:6px;align-items:flex-end}
+.em{width:16px;height:20px}
+.em svg{width:100%;height:100%;display:block}
+.em .fl{fill:rgba(255,255,255,.12);stroke:#000;stroke-width:2}
+.em.lit .fl{fill:var(--ember)}
+.em.lit svg{filter:drop-shadow(0 0 4px rgba(255,140,40,.9))}
+.em.spent .fl{fill:var(--bad)}
+.em.today .fl{stroke:var(--hud);stroke-dasharray:3 2}
+.em.lit.today .fl,.em.spent.today .fl{stroke:#000;stroke-dasharray:none}
+.watch-act{margin-top:9px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn.small{padding:9px 8px;font-size:11px;letter-spacing:.1em}
+.watch-done{display:flex;align-items:center;justify-content:space-between;gap:8px;font:700 12px/1.3 var(--mono);color:var(--good)}
+.watch-done.spent{color:var(--bad)}
+.linkbtn{appearance:none;background:none;border:0;padding:4px;color:var(--dim);font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-decoration:underline}
+.spentform{display:grid;grid-template-columns:90px 1fr;gap:6px;margin-bottom:8px}
+.inp.sm{padding:8px 9px;font-size:13px}
+.wd.held span{color:var(--ember)}.stat .v.ember{color:var(--ember)}.wd.spent span{color:var(--bad)}
+.bonus{margin-top:7px;height:8px;border:1px solid #000;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden}
+.bonus>i{display:block;height:100%;background:linear-gradient(90deg,var(--r-rare),var(--r-epic))}
+.relics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.relic{padding:8px 6px;border:1px dashed var(--line);border-radius:6px;text-align:center;font-size:10.5px;color:var(--dim);line-height:1.3}
+.relic b{display:block;font:700 15px/1 var(--mono);color:var(--muted);margin-bottom:4px}
+.relic.on{border:2px solid #000;background:linear-gradient(135deg,rgba(255,122,26,.3),rgba(0,0,0,.4));color:#ffe7b0;box-shadow:0 0 10px rgba(255,122,26,.35)}
+.relic.on b{color:var(--ember)}
+.kept{padding:10px;border:2px solid #000;border-radius:8px;background:linear-gradient(135deg,rgba(78,227,138,.16),rgba(0,0,0,.4));box-shadow:2px 2px 0 #000}
+.kept .v{margin-top:5px;font:700 22px/1 var(--mono);color:var(--good);font-variant-numeric:tabular-nums}
+.addform{display:grid;grid-template-columns:1fr 92px;gap:6px}
+.addform .btn{grid-column:1/-1}
+.items{display:grid;gap:7px}
+.item{padding:9px 10px;border:2px solid #000;border-radius:7px;background:rgba(0,0,0,.4);box-shadow:2px 2px 0 #000;min-width:0}
+.item-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.item-name{font:700 13px/1.2 var(--mono);min-width:0;overflow-wrap:anywhere}
+.item-price{font:700 13px/1 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.item-lock{margin-top:6px;display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted)}
+.lockbar{flex:1;height:6px;border:1px solid #000;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden}
+.lockbar>i{display:block;height:100%;background:var(--ice)}
+.item.open{border-color:var(--hud);box-shadow:0 0 12px rgba(255,197,61,.35),2px 2px 0 #000}
+.item.open .lockbar>i{background:var(--hud)}
+.item .acts{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.item.past{opacity:.6;box-shadow:none;border-width:1px;border-color:var(--line)}
+.badge{display:inline-block;padding:2px 5px;border:1.5px solid #000;border-radius:3px;font:700 8.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;transform:skew(-8deg)}
+.badge.l{background:var(--ice);color:#000}.badge.o{background:var(--hud);color:#000}.badge.k{background:var(--good);color:#000}.badge.b{background:rgba(255,255,255,.2);color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -250,6 +300,12 @@ select.inp{font-size:13px}
           <span class="shield-num" id="shieldNum">0 / 7</span>
         </div>
         <div class="shield-note" id="shieldNote"></div>
+        <div class="watch" id="watch" hidden>
+          <div class="watch-head"><span class="lbl">Nightly Watch</span><span class="watch-streak" id="watchStreak"></span></div>
+          <div class="watch-q" id="watchQ"></div>
+          <div class="embers" id="embers" aria-label="This week's watch"></div>
+          <div class="watch-act" id="watchAct"></div>
+        </div>
       </div>
       <div class="tap-hint" id="tapHint">Tap for telemetry</div>
 
@@ -272,12 +328,28 @@ select.inp{font-size:13px}
       </div>
       <div class="tabs" id="tabs">
         <button class="tab on" data-tab="telemetry">Telemetry</button>
+        <button class="tab" data-tab="watch" hidden>Watch</button>
+        <button class="tab" data-tab="locked" hidden>Locked</button>
         <button class="tab" data-tab="controls">Controls</button>
         <button class="tab" data-tab="log">Log</button>
         <button class="tab" data-tab="loot">Loot</button>
         <button class="tab" data-tab="lore">Lore</button>
       </div>
       <div class="panel" id="p-telemetry"></div>
+      <div class="panel" id="p-watch" hidden></div>
+      <div class="panel" id="p-locked" hidden>
+        <div id="keptBox"></div>
+        <div class="sec">Tempted? Lock it</div>
+        <form class="addform" id="lockForm" autocomplete="off">
+          <input class="inp sm" id="lockItem" placeholder="What do you want?" maxlength="60" required />
+          <input class="inp sm" id="lockPrice" type="text" inputmode="decimal" placeholder="€" required />
+          <div class="hint" id="lockHint" style="grid-column:1/-1;margin-top:0">1 day per €10 · at least 2, at most 30 days</div>
+          <button class="btn wide" type="submit">Lock it</button>
+        </form>
+        <div class="sec" id="lockerHead">In the locker</div>
+        <div class="items" id="lockerItems"></div>
+        <div id="lockerPast"></div>
+      </div>
       <div class="panel" id="p-controls" hidden></div>
       <div class="panel" id="p-log" hidden></div>
       <div class="panel" id="p-loot" hidden></div>
@@ -572,6 +644,7 @@ function renderFront() {
   front.classList.toggle('funded', !!v.funded);
   setMedia(v.form);
   runTicker(transmissions(v, sh, now));
+  renderWatchFront();
 }
 
 // ---------- render: back ----------
@@ -581,6 +654,7 @@ function renderBack() {
   $('bTitle').textContent = v ? v.name : 'The Vault';
   $('bSub').textContent = v ? (v.goal + ' · ' + v.form.name + ' · Tier ' + v.tier + '/' + v.form_count) : 'No active campaign';
   renderTelemetry(v); renderControls(v); renderLog(); renderLoot(); renderLore(v);
+  renderWatchPanel(); renderLocker();
 }
 function renderTelemetry(v) {
   const el = $('p-telemetry');
@@ -695,6 +769,130 @@ function normalise(st) {
 }
 function render() { normalise(state); renderFront(); renderBack(); checkSplash(); }
 
+// ---------- Nightly Watch and Locked Loot ----------
+// The Quest Engine lays `watch` and `locker` over the card state (live from
+// D1). One answer per game day; "Spent" is only a log, never a breach.
+const FLAME = '<svg viewBox="0 0 16 20" aria-hidden="true"><path class="fl" d="M8 1 C10 6 15 8 14 13 C13.5 17 11 19 8 19 C5 19 2.5 17 2 13 C1.5 9 5 8 6 4 C7 6 8 7 8 9 C9 7 9 4 8 1Z"/></svg>';
+const nights = n => n + ' night' + (n === 1 ? '' : 's');
+const shortDay = key => { if (!key) return ''; const [, m, d] = key.split('-').map(Number); return DAYS[dowOf(key)] + ' ' + d + ' ' + MONTHS[m - 1]; };
+const lockDays = p => Math.min(30, Math.max(2, Math.ceil(p / 10)));
+let spentDraft = false;
+let watchHtml = '';
+function curOf() { return (state && state.vault && state.vault.currency) || 'EUR'; }
+function renderWatchFront() {
+  const box = $('watch');
+  const w = state && state.watch;
+  box.hidden = !w;
+  if (!w) return;
+  $('watchStreak').textContent = w.streak ? '🔥 ' + nights(w.streak) : '';
+  $('embers').innerHTML = w.days.map(d => '<span class="em' + (d.status === 'held' ? ' lit' : d.status === 'spent' ? ' spent' : '') + (d.day === w.today ? ' today' : '') + '" title="' + DAYS[dowOf(d.day)] + '">' + FLAME + '</span>').join('');
+  let q, html;
+  if (w.today_status === 'held') {
+    q = 'Line held tonight. The guards add a log to the fire.';
+    html = '<div class="watch-done"><span>✓ Held the line</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
+  } else if (w.today_status === 'spent') {
+    q = 'Logged. Tomorrow is a new watch. The Vault is untouched.';
+    html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + '</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
+  } else if (spentDraft) {
+    q = 'What did you spend on? Only a log, not a breach.';
+    html = '<form id="spentForm" autocomplete="off"><div class="spentform"><input class="inp sm" id="spAmt" type="text" inputmode="decimal" placeholder="€" required /><input class="inp sm" id="spWhat" placeholder="What for?" maxlength="80" required /></div>' +
+      '<div class="btns"><button class="btn ghost small" type="button" data-w="cancel">Cancel</button><button class="btn danger small" type="submit">Log spend</button></div></form>';
+  } else {
+    q = 'Did you hold the line today? No unplanned spending; groceries, bills and fixed costs don\'t count.';
+    html = '<div class="btns"><button class="btn good small" type="button" data-w="held">Held the line</button><button class="btn ghost small" type="button" data-w="spent">Spent</button></div>';
+  }
+  $('watchQ').textContent = q;
+  if (html === watchHtml) return; // keep a half-typed spend
+  watchHtml = html;
+  $('watchAct').innerHTML = html;
+  const sf = $('spentForm');
+  if (sf) sf.addEventListener('submit', async e => {
+    e.preventDefault(); e.stopPropagation();
+    const amt = parseAmount($('spAmt').value), what = $('spWhat').value.trim();
+    if (!(amt > 0)) { toast('Enter what you spent', true); return; }
+    if (!what) { toast('What was it for?', true); return; }
+    const r = await send({ action: 'watch', status: 'spent', amount: amt, what }, 'Logging…');
+    if (r) { spentDraft = false; toast(r.message); render(); }
+  });
+}
+$('watch').addEventListener('click', async e => {
+  const b = e.target.closest('[data-w]'); if (!b) return;
+  e.stopPropagation();
+  const w = b.dataset.w;
+  if (w === 'spent') { spentDraft = true; renderWatchFront(); const a = $('spAmt'); if (a) a.focus(); return; }
+  if (w === 'cancel') { spentDraft = false; renderWatchFront(); return; }
+  if (w === 'held') {
+    const r = await send({ action: 'watch', status: 'held' }, 'Holding the line…');
+    if (r && r.relic) splash('Relic Earned', 'var(--ember)', [r.relic, 'Watch streak ' + nights(r.streak)], 'It glows by the campfire');
+    else if (r) toast(r.message);
+  }
+  if (w === 'undo') { const r = await send({ action: 'watch_undo' }, 'Clearing…'); if (r) toast(r.message); }
+});
+function renderWatchPanel() {
+  const el = $('p-watch');
+  const w = state && state.watch;
+  document.querySelector('.tab[data-tab="watch"]').hidden = !w;
+  if (!w) { el.innerHTML = ''; return; }
+  const cur = curOf();
+  const week = w.days.map(d => '<div class="wd ' + (d.status || '') + (d.day === w.today ? ' today' : '') + '"><b>' + DAYS[dowOf(d.day)] + '</b><span>' + (d.status === 'held' ? '🔥' : d.status === 'spent' ? '✕' : d.day < w.today ? '·' : d.day === w.today ? '?' : '') + '</span></div>').join('');
+  const left = Math.max(0, w.bonus_needed - w.held_week);
+  el.innerHTML =
+    '<div class="sec">This week</div><div class="week">' + week + '</div>' +
+    '<div class="stat wide" style="margin-top:6px"><div class="k">Loot bonus</div><div class="v">' + Math.min(w.held_week, w.bonus_needed) + ' / ' + w.bonus_needed + ' held days</div>' +
+      '<div class="bonus"><i style="width:' + Math.min(100, w.held_week / w.bonus_needed * 100) + '%"></i></div>' +
+      '<div class="hint">' + (w.bonus ? 'Bonus earned: Monday\'s loot goes up one rarity.' : left + ' more held day' + (left === 1 ? '' : 's') + ' and Monday\'s loot goes up one rarity.') + '</div></div>' +
+    '<div class="sec">Streak</div><div class="grid">' +
+      stat('Current', nights(w.streak), 'ember') + stat('Best', nights(w.best_streak)) +
+      stat('Held this month', w.month.held + ' / ' + w.month.answered) + stat('Spent this month', esc(money(w.month.spent, cur))) +
+    '</div>' +
+    '<div class="sec">Watch relics</div><div class="relics">' + w.relics.map(r => '<div class="relic' + (r.earned ? ' on' : '') + '"><b>' + r.days + '</b>' + esc(r.name) + '</div>').join('') + '</div>' +
+    '<div class="sec">Spending log</div>' + (w.spent_log.length ? '<ul class="log">' + w.spent_log.map(s => '<li><div><div class="t">' + esc(s.what) + '</div><div class="s">' + esc(shortDay(s.day)) + '</div></div><span class="amt" style="color:var(--bad)">' + esc(money(s.amount, cur)) + '</span></li>').join('') + '</ul>' : '<div class="empty-note">Nothing logged. Spent days land here, never as a breach.</div>');
+}
+function renderLocker() {
+  const l = state && state.locker;
+  document.querySelector('.tab[data-tab="locked"]').hidden = !l;
+  if (!l) return;
+  const cur = curOf();
+  $('keptBox').innerHTML = '<div class="kept"><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
+    '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' moved into the Vault' : '') + '.</div>' +
+    l.to_move.map(i => '<div style="margin-top:8px"><button class="btn good small wide" type="button" data-l="move" data-id="' + esc(i.id) + '">Move ' + esc(money(i.price, cur)) + ' (' + esc(i.item) + ') into the Vault</button></div>').join('') + '</div>';
+  $('lockerHead').textContent = 'In the locker · ' + (l.slots - l.free) + '/' + l.slots + (l.locked_total ? ' · ' + money(l.locked_total, cur) + ' locked up' : '');
+  $('lockForm').style.display = l.free ? '' : 'none';
+  $('lockerItems').innerHTML = (l.free ? '' : '<div class="hint" style="margin:0 0 4px">The locker is full. Let one go to make room.</div>') +
+    (l.locked.length ? l.locked.map(i => {
+      const pct = Math.round((i.lock_days - i.days_left) / i.lock_days * 100);
+      return '<div class="item' + (i.open ? ' open' : '') + '"><div class="item-top"><span class="item-name">' + esc(i.item) + '</span><span class="item-price">' + esc(money(i.price, cur)) + '</span></div>' +
+        '<div style="margin-top:5px">' + (i.open ? '<span class="badge o">Unlocked</span>' : '<span class="badge l">Locked</span>') + '</div>' +
+        (i.open ? '<div class="item-lock"><span>Lock open after ' + i.lock_days + ' days. Still want it?</span></div>' +
+            '<div class="acts"><button class="btn ghost small" type="button" data-l="keep" data-id="' + esc(i.id) + '">Still want it</button><button class="btn good small" type="button" data-l="release" data-id="' + esc(i.id) + '">Let it go</button></div>'
+          : '<div class="item-lock"><div class="lockbar"><i style="width:' + pct + '%"></i></div><span>' + i.days_left + ' day' + (i.days_left === 1 ? '' : 's') + ' left</span><button class="linkbtn" type="button" data-l="release" data-id="' + esc(i.id) + '">Let go</button></div>') +
+        '</div>';
+    }).join('') : '<div class="empty-note">Empty. Next time something tempts you, lock it here first.</div>');
+  $('lockerPast').innerHTML = l.history.length ? '<div class="sec">Decided</div><div class="items">' + l.history.map(i => '<div class="item past"><div class="item-top"><span class="item-name">' + esc(i.item) + '</span><span class="item-price">' + esc(money(i.price, cur)) + '</span></div><div style="margin-top:5px">' + (i.status === 'released' ? '<span class="badge k">Let go</span>' + (i.moved ? ' <span class="badge b">In the Vault</span>' : '') : '<span class="badge b">Bought</span>') + '</div></div>').join('') + '</div>' : '';
+}
+$('lockPrice').addEventListener('input', () => { const p = parseAmount($('lockPrice').value); $('lockHint').textContent = p > 0 ? 'Locked for ' + lockDays(p) + ' days' : '1 day per €10 · at least 2, at most 30 days'; });
+$('lockForm').addEventListener('submit', async e => {
+  e.preventDefault(); e.stopPropagation();
+  const item = $('lockItem').value.trim(), price = parseAmount($('lockPrice').value);
+  if (!item || !(price > 0)) { toast('Enter what and the price', true); return; }
+  const r = await send({ action: 'loot_lock', item, price }, 'Locking…');
+  if (r) { e.target.reset(); $('lockHint').textContent = '1 day per €10 · at least 2, at most 30 days'; toast(r.message); }
+});
+$('p-locked').addEventListener('click', async e => {
+  const b = e.target.closest('[data-l]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const id = b.dataset.id, act = b.dataset.l, cur = curOf();
+  if (act === 'keep') { const r = await send({ action: 'loot_keep', id }, 'Logging…'); if (r) toast(r.message); }
+  if (act === 'release') {
+    const r = await send({ action: 'loot_release', id }, 'Letting go…');
+    if (r) splash('Kept From The Gate', 'var(--good)', ['+' + money(r.price, cur) + ' not spent', r.item], 'Move it into the Vault from the Locked tab');
+  }
+  if (act === 'move') {
+    const r = await send({ action: 'loot_move', id }, 'Charging core…');
+    if (r) splashInject(r, cur);
+  }
+});
+
 // ---------- flip ----------
 function setFlipped(f) {
   clearTimeout(flipTimer);
@@ -706,7 +904,7 @@ function setFlipped(f) {
 cardEl.addEventListener('click', e => {
   if (busy) return;
   const flipped = cardEl.classList.contains('is-flipped');
-  if (e.target.closest('button, input, select, a, .ticker')) return;
+  if (e.target.closest('button, input, select, a, form, .ticker, .watch')) return;
   if (flipped && !e.target.closest('.b-head, .hazard')) return; // on the back only the header flips back
   if (!state || !state.vault) { if (!flipped) return; }
   setFlipped(!flipped);
@@ -716,7 +914,7 @@ $('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
   e.stopPropagation();
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
-  ['telemetry', 'controls', 'log', 'loot', 'lore'].forEach(n => { $('p-' + n).hidden = n !== t.dataset.tab; });
+  ['telemetry', 'watch', 'locked', 'controls', 'log', 'loot', 'lore'].forEach(n => { $('p-' + n).hidden = n !== t.dataset.tab; });
 });
 
 // ---------- actions ----------
