@@ -199,7 +199,16 @@ select.inp{font-size:13px}
 .busy div:last-child{font:700 11px/1 var(--mono);letter-spacing:.24em;color:var(--hud);text-transform:uppercase}
 /* ---------- NIGHTLY WATCH (front) and LOCKED LOOT (back) ---------- */
 :root{--ember:#ff7a1a;--ice:#7fd8ff}
-.watch{margin-top:12px;padding:9px 10px 10px;border:2px solid #000;border-radius:8px;background:rgba(10,6,4,.78);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:3px 3px 0 #000;pointer-events:auto;cursor:auto}
+.watch{margin-top:10px;padding:0 2px;pointer-events:auto;cursor:auto;text-shadow:0 1px 2px #000,0 0 6px rgba(0,0,0,.8)}
+/* the front stays light: one row (weather icon, Held with the log count, Spent); the photo carries the camp */
+.watch .watch-head,.watch .watch-q,.watch #watchWx,.watch .watch-row{display:none!important}
+.watch.folded .watch-act{margin-top:4px}
+.wbar{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:stretch}
+.wbar .btn{display:flex;align-items:center;justify-content:center;gap:10px}
+.wbar .wspent{padding-inline:16px}
+.wlogs{font-size:11px;letter-spacing:.02em;padding:2px 6px;border-radius:10px;background:rgba(0,0,0,.18);text-shadow:none}
+.wx-ic{width:40px;border:2px solid #000;border-radius:6px;background:rgba(10,6,4,.55);color:#ffe7b0;font:700 16px/1 var(--mono);cursor:pointer;box-shadow:3px 3px 0 #000}
+.wx-ic.bad{color:#9fd0ff}.wx-ic.storm{color:#ffd36b}.wx-ic.good{color:#9dffb0}.wx-ic.star{color:#fff3a0}
 .watch[hidden]{display:none}
 .watch-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .watch-streak{font:700 12px/1 var(--mono);color:var(--ember);text-shadow:1px 1px 0 #000;white-space:nowrap}
@@ -840,7 +849,7 @@ const logsOf = w => (w.fire ? w.fire.logs : w.streak) || 0;
 const shortDay = key => { if (!key) return ''; const [, m, d] = key.split('-').map(Number); return DAYS[dowOf(key)] + ' ' + d + ' ' + MONTHS[m - 1]; };
 const lockDays = p => Math.min(30, Math.max(2, Math.ceil(p / 10)));
 let spentDraft = false;
-let watchHtml = '';
+let watchHtml = '', wxLine = '';
 function curOf() { return (state && state.vault && state.vault.currency) || 'EUR'; }
 // The guards' campfire grows with the watch streak: every held night adds a
 // log, and at 3, 7, 30 and 100 nights it turns into something bigger.
@@ -986,6 +995,7 @@ function renderWatchFront() {
   const w = state && state.watch;
   box.hidden = !w;
   if (!w) return;
+  box.classList.toggle('folded', !!w.today_status);
   const logs = logsOf(w);
   $('watchStreak').textContent = logs ? '🔥 ' + logsTxt(logs) : '';
   const wx = w.fire && w.fire.weather;
@@ -1008,7 +1018,11 @@ function renderWatchFront() {
       '<div class="btns"><button class="btn ghost small" type="button" data-w="cancel">Cancel</button><button class="btn danger small" type="submit">Log spend</button></div></form>';
   } else {
     q = 'Did you hold the line today? Groceries, bills and fixed costs don\'t count.';
-    html = '<div class="btns"><button class="btn good small" type="button" data-w="held">Held the line</button><button class="btn ghost small" type="button" data-w="spent">Spent</button></div>';
+    const wi = WX[wx && wx.key] || WX.clear;
+    wxLine = wx ? wx.name + '. ' + wx.line : '';
+    html = '<div class="wbar"><button class="wx-ic ' + (wi.cls || '') + '" type="button" data-w="wxinfo" aria-label="Tonight\'s weather">' + wi.ic + '</button>' +
+      '<button class="btn good small" type="button" data-w="held">Held the line<span class="wlogs">🔥 ' + logs + '</span></button>' +
+      '<button class="btn ghost small wspent" type="button" data-w="spent">Spent</button></div>';
   }
   $('watchQ').textContent = q;
   if (html === watchHtml) return; // keep a half-typed spend
@@ -1028,6 +1042,7 @@ $('watch').addEventListener('click', async e => {
   const b = e.target.closest('[data-w]'); if (!b) return;
   e.stopPropagation();
   const w = b.dataset.w;
+  if (w === 'wxinfo') { toast(wxLine || 'Clear night.'); return; }
   if (w === 'spent') { spentDraft = true; renderWatchFront(); const a = $('spAmt'); if (a) a.focus(); return; }
   if (w === 'cancel') { spentDraft = false; renderWatchFront(); return; }
   if (w === 'held') {
