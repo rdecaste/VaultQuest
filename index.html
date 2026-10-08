@@ -247,6 +247,65 @@ select.inp{font-size:13px}
 .item.past{opacity:.6;box-shadow:none;border-width:1px;border-color:var(--line)}
 .badge{display:inline-block;padding:2px 5px;border:1.5px solid #000;border-radius:3px;font:700 8.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;transform:skew(-8deg)}
 .badge.l{background:var(--ice);color:#000}.badge.o{background:var(--hud);color:#000}.badge.k{background:var(--good);color:#000}.badge.b{background:rgba(255,255,255,.2);color:#fff}
+.fire{display:block;width:100%;height:auto;overflow:visible}
+.fire .fl1,.fire .fl2,.fire .fl3{transform-box:fill-box;transform-origin:50% 100%}
+.fire .fl1{animation:flick 1.6s ease-in-out infinite}
+.fire .fl2{animation:flick 1.2s ease-in-out infinite reverse}
+.fire .fl3{animation:flick .9s ease-in-out infinite}
+@keyframes flick{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(.94,1.06) skewX(2deg)}60%{transform:scale(1.04,.95) skewX(-2deg)}}
+.fire .spark{animation:rise 2.4s linear infinite;opacity:0}
+@keyframes rise{0%{transform:translateY(0);opacity:0}10%{opacity:1}100%{transform:translateY(-70px);opacity:0}}
+.fire .smoke{animation:smoke 4s ease-in-out infinite;opacity:.0}
+@keyframes smoke{0%{transform:translate(0,0) scale(.6);opacity:0}30%{opacity:.35}100%{transform:translate(8px,-40px) scale(1.4);opacity:0}}
+.fire .glow{animation:glowP 2s ease-in-out infinite}
+@keyframes glowP{50%{opacity:.75}}
+.wx{display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:6px 8px;border:1px solid var(--wxc,rgba(255,255,255,.15));border-radius:6px;background:rgba(0,0,0,.35);font:600 11px/1.3 var(--mono);color:#ffe7b0}
+.wx i{flex:none;width:22px;height:22px;display:grid;place-items:center;border:2px solid #000;border-radius:4px;background:var(--wxc,#555);color:#000;font-style:normal;font-weight:700}
+.wx.bad{--wxc:#7fb2ff}.wx.storm{--wxc:#ff4d4d}.wx.good{--wxc:#4ee38a}.wx.star{--wxc:#ffc53d}
+.fire .rain{animation:rain .7s linear infinite}
+@keyframes rain{from{transform:translate(0,-20px)}to{transform:translate(-8px,30px)}}
+.fire .gust{animation:gust 2.2s ease-in-out infinite;opacity:0}
+@keyframes gust{0%{transform:translateX(30px);opacity:0}30%{opacity:.8}100%{transform:translateX(-60px);opacity:0}}
+.fire .shoot{animation:shoot 3.5s ease-in infinite}
+@keyframes shoot{0%,60%{transform:translate(0,0);opacity:0}65%{opacity:1}85%{transform:translate(-90px,40px);opacity:0}100%{opacity:0}}
+.fire.windy .fl1,.fire.windy .fl2,.fire.windy .fl3{animation-name:flickWind}
+@keyframes flickWind{0%,100%{transform:skewX(-10deg) scale(1,1)}50%{transform:skewX(-18deg) scale(1.03,.95)}}
+.nights{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.nights li{display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:rgba(0,0,0,.3);font-size:11.5px}
+.nights .nd{color:var(--dim);font-weight:700}
+.nights .n{font-weight:700;font-variant-numeric:tabular-nums}
+.nights .n.up{color:var(--ember)}.nights .n.down{color:var(--bad)}
+.watch-row{display:grid;grid-template-columns:112px 1fr;gap:10px;align-items:end}
+.watch-fire{width:112px;margin-bottom:-4px}
+.camp{position:relative;margin-top:6px;border:2px solid #000;border-radius:10px;overflow:hidden;background:radial-gradient(70% 70% at 50% 85%,rgba(255,120,30,var(--warm,.25)),transparent 70%),linear-gradient(180deg,#0b0a14 0%,#1a1220 55%,#3a2414 100%);box-shadow:3px 3px 0 #000}
+.camp .fire{max-width:300px;margin:0 auto}
+.camp-cap{position:absolute;left:12px;top:10px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.camp-stage{font:400 26px/.95 var(--display);letter-spacing:.03em;-webkit-text-stroke:1px #000;text-shadow:2px 2px 0 #000;color:var(--ember)}
+.camp-n{font:700 22px/1 var(--mono);text-shadow:2px 2px 0 #000;text-align:right}
+.camp-n small{display:block;font-size:9px;letter-spacing:.2em;color:var(--dim);margin-top:3px}
+.camp-next{padding:8px 12px 10px;background:rgba(0,0,0,.55);border-top:2px solid #000}
+.camp-next .bonus>i{background:linear-gradient(90deg,#ff5a1a,#ffc53d)}
+.stages{display:flex;justify-content:space-between;margin-top:6px;font:700 8.5px/1 var(--mono);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+.stages span.on{color:var(--ember)}
+.vault-locker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.crate{position:relative;padding:8px 8px 10px;border:2px solid #000;border-radius:10px;background:radial-gradient(90% 60% at 50% 40%,color-mix(in srgb,var(--cr) 22%,transparent),transparent 70%),linear-gradient(180deg,#1c1612,#0d0a0b);box-shadow:3px 3px 0 #000;text-align:center;min-width:0;overflow:hidden}
+.crate svg{display:block;width:100%;max-width:150px;margin:0 auto}
+.crate .cn{margin-top:4px;font:700 12.5px/1.2 var(--mono);overflow-wrap:anywhere}
+.crate .cp{margin-top:3px;font:700 15px/1 var(--mono);color:var(--cr);text-shadow:1px 1px 0 #000;font-variant-numeric:tabular-nums}
+.crate .cr{margin-top:3px;font:700 8.5px/1 var(--mono);letter-spacing:.16em;color:var(--cr);text-transform:uppercase;opacity:.9}
+.crate .cd{margin-top:6px;font:600 10.5px/1.2 var(--mono);color:var(--muted)}
+.crate .cd b{font-size:13px;color:#fff}
+.crate.open{grid-column:1/-1;border-color:var(--cr);box-shadow:0 0 18px color-mix(in srgb,var(--cr) 60%,transparent),3px 3px 0 #000}
+.crate.open svg{max-width:170px}
+.crate.open .rays{animation:spin 14s linear infinite;transform-origin:60px 50px}
+.crate .acts{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.crate.empty{border-style:dashed;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.02);box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px;color:var(--dim);font:700 10px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.crate.empty i{font-style:normal;font-size:26px;opacity:.4;margin-bottom:6px}
+.crate .letgo{position:absolute;top:6px;right:6px}
+.locker-total{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
+.locker-total .big{font:700 20px/1 var(--mono);color:var(--ice);text-shadow:2px 2px 0 #000}
+.hoard{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}
+.hoard svg{width:100%;display:block}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -303,7 +362,8 @@ select.inp{font-size:13px}
         <div class="watch" id="watch" hidden>
           <div class="watch-head"><span class="lbl">Nightly Watch</span><span class="watch-streak" id="watchStreak"></span></div>
           <div class="watch-q" id="watchQ"></div>
-          <div class="embers" id="embers" aria-label="This week's watch"></div>
+          <div id="watchWx"></div>
+          <div class="watch-row"><div class="watch-fire" id="watchFire"></div><div><div class="watch-stage lbl" id="watchStage" style="color:var(--ember);margin-bottom:6px"></div><div class="embers" id="embers" aria-label="This week's watch"></div></div></div>
           <div class="watch-act" id="watchAct"></div>
         </div>
       </div>
@@ -339,6 +399,8 @@ select.inp{font-size:13px}
       <div class="panel" id="p-watch" hidden></div>
       <div class="panel" id="p-locked" hidden>
         <div id="keptBox"></div>
+        <div class="locker-total"><span class="sec" style="margin:0" id="lockerHead">In the locker</span><span class="big" id="lockerSum"></span></div>
+        <div class="vault-locker" id="lockerItems"></div>
         <div class="sec">Tempted? Lock it</div>
         <form class="addform" id="lockForm" autocomplete="off">
           <input class="inp sm" id="lockItem" placeholder="What do you want?" maxlength="60" required />
@@ -346,8 +408,6 @@ select.inp{font-size:13px}
           <div class="hint" id="lockHint" style="grid-column:1/-1;margin-top:0">1 day per €10 · at least 2, at most 30 days</div>
           <button class="btn wide" type="submit">Lock it</button>
         </form>
-        <div class="sec" id="lockerHead">In the locker</div>
-        <div class="items" id="lockerItems"></div>
         <div id="lockerPast"></div>
       </div>
       <div class="panel" id="p-controls" hidden></div>
@@ -774,31 +834,172 @@ function render() { normalise(state); renderFront(); renderBack(); checkSplash()
 // D1). One answer per game day; "Spent" is only a log, never a breach.
 const FLAME = '<svg viewBox="0 0 16 20" aria-hidden="true"><path class="fl" d="M8 1 C10 6 15 8 14 13 C13.5 17 11 19 8 19 C5 19 2.5 17 2 13 C1.5 9 5 8 6 4 C7 6 8 7 8 9 C9 7 9 4 8 1Z"/></svg>';
 const nights = n => n + ' night' + (n === 1 ? '' : 's');
+const logsTxt = n => n + ' log' + (n === 1 ? '' : 's');
+// The fire's fuel: +1 log a held night, a spend burns 1 per €10, no answer 3.
+const logsOf = w => (w.fire ? w.fire.logs : w.streak) || 0;
 const shortDay = key => { if (!key) return ''; const [, m, d] = key.split('-').map(Number); return DAYS[dowOf(key)] + ' ' + d + ' ' + MONTHS[m - 1]; };
 const lockDays = p => Math.min(30, Math.max(2, Math.ceil(p / 10)));
 let spentDraft = false;
 let watchHtml = '';
 function curOf() { return (state && state.vault && state.vault.currency) || 'EUR'; }
+// The guards' campfire grows with the watch streak: every held night adds a
+// log, and at 3, 7, 30 and 100 nights it turns into something bigger.
+const FIRE_STAGES = [
+  { at: 0, name: 'Cold ashes' }, { at: 1, name: 'Kindling' }, { at: 3, name: 'Campfire' },
+  { at: 7, name: 'Bonfire' }, { at: 30, name: 'Signal fire' }, { at: 100, name: 'Eternal flame' }
+];
+function fireStage(n) { let i = 0; FIRE_STAGES.forEach((s, k) => { if (n >= s.at) i = k; }); return i; }
+const WX = {
+  clear: { ic: '☾', cls: '', name: 'clear' }, breeze: { ic: '≈', cls: 'bad', name: 'breeze' }, wind: { ic: '≋', cls: 'bad', name: 'gusty wind' }, rain: { ic: '☂', cls: 'bad', name: 'rain' },
+  storm: { ic: 'ϟ', cls: 'storm', name: 'sandstorm' }, drywood: { ic: '▤', cls: 'good', name: 'dry wood' }, trader: { ic: '⚑', cls: 'good', name: 'trader' }, star: { ic: '★', cls: 'star', name: 'shooting star' }
+};
+const wxChip = wx => wx ? '<div class="wx ' + ((WX[wx.key] || {}).cls || '') + '"><i>' + ((WX[wx.key] || {}).ic || '☾') + '</i><span><b>' + esc(wx.name) + '.</b> ' + esc(wx.line.replace(/^[^.!]*[.!]\s*/, '')) + '</span></div>' : '';
+function weatherSvg(key) {
+  if (key === 'rain' || key === 'storm') {
+    let o = '<g stroke="#8fc4ff" stroke-width="1.6" stroke-linecap="round" opacity=".75">';
+    for (let i = 0; i < (key === 'storm' ? 34 : 22); i++) { const x = (i * 37) % 240, y = (i * 53) % 120; o += '<path class="rain" style="animation-delay:' + ((i % 7) * .1).toFixed(1) + 's" d="M' + x + ' ' + y + ' l-4 12"/>'; }
+    o += '</g>';
+    if (key === 'storm') o += '<rect width="240" height="170" fill="#3a1a10" opacity=".25"/><path d="M190 4 l-10 22 h8 l-12 24" fill="none" stroke="#fff3a0" stroke-width="2.5" opacity=".9"/>';
+    return o;
+  }
+  if (key === 'breeze' || key === 'wind') {
+    let o = '<g fill="none" stroke="#e8e2d6" stroke-width="2" stroke-linecap="round">';
+    for (let i = 0; i < (key === 'wind' ? 5 : 3); i++) o += '<path class="gust" style="animation-delay:' + (i * .45).toFixed(2) + 's" d="M' + (150 + i * 12) + ' ' + (30 + i * 22) + ' q-20 -8 -40 0 t-40 0"/>';
+    return o + '</g>';
+  }
+  if (key === 'star') return '<g class="shoot"><path d="M200 10 l-30 14" stroke="#fff6c0" stroke-width="2.5" stroke-linecap="round"/><circle cx="200" cy="10" r="3" fill="#fff"/></g><g fill="#fff">' + [[30, 20], [70, 12], [140, 26], [210, 40], [20, 60]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="1.2"/>').join('') + '</g>';
+  if (key === 'trader') return '<g transform="translate(150 150)"><rect x="-2" y="-14" width="26" height="7" rx="3.5" fill="#a0703c" stroke="#000" stroke-width="1.8"/><rect x="0" y="-21" width="22" height="7" rx="3.5" fill="#8a5a2e" stroke="#000" stroke-width="1.8"/><path d="M10 -22 v16" stroke="#d9c38a" stroke-width="2"/></g>';
+  if (key === 'drywood') return '<g fill="#ffe08a" opacity=".9">' + [[200, 120], [214, 112], [226, 124]].map(([x, y]) => '<path d="M' + x + ' ' + y + ' l2 -5 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 Z"/>').join('') + '</g>';
+  return '<g fill="#fff" opacity=".7">' + [[30, 20], [70, 12], [140, 26], [210, 40], [20, 60], [180, 14]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="1"/>').join('') + '</g>';
+}
+function campfireSvg(n, big, wx) {
+  const st = fireStage(n);
+  const h = st === 0 ? 0 : 0.3 + 0.7 * Math.min(1, Math.log(1 + n) / Math.log(101)); // flame size 0..1
+  const r = rng('fire:' + n);
+  const cx = 112, base = 148, id = 'fg' + (big ? 'b' : 's');
+  const blue = st >= 5;
+  let o = '<svg class="fire' + (wx === 'wind' || wx === 'storm' || wx === 'breeze' ? ' windy' : '') + '" viewBox="' + (big ? '0 0 240 170' : '16 ' + (st >= 3 ? 30 : 70) + ' 224 ' + (st >= 3 ? 130 : 90)) + '" aria-hidden="true">';
+  o += '<defs><radialGradient id="' + id + '" cx="50%" cy="85%" r="60%"><stop offset="0" stop-color="' + (blue ? '#e8fbff' : '#fff3b0') + '"/><stop offset=".4" stop-color="' + (blue ? '#5cc2ff' : '#ffb21f') + '"/><stop offset="1" stop-color="' + (blue ? '#2a55ff' : '#ff4a12') + '"/></radialGradient></defs>';
+  // ground glow, wider as the fire grows
+  if (st > 0) o += '<ellipse class="glow" cx="' + cx + '" cy="' + (base + 2) + '" rx="' + (34 + 70 * h) + '" ry="' + (8 + 12 * h) + '" fill="' + (blue ? '#5cc2ff' : '#ff7a1a') + '" opacity=".4"/>';
+  // the woodpile: one log end per held night (pyramid, up to 15), the visible proof of the streak
+  const pile = Math.min(15, n);
+  let left = pile;
+  for (let row = 0; left > 0; row++) {
+    const k = Math.min(left, 5 - row);
+    for (let j = 0; j < k; j++) {
+      const x = 212 + (j - (k - 1) / 2) * 11, y = base + 2 - row * 10;
+      o += '<circle cx="' + x.toFixed(1) + '" cy="' + y + '" r="5.6" fill="#8a5a2e" stroke="#000" stroke-width="2"/><circle cx="' + x.toFixed(1) + '" cy="' + y + '" r="2.2" fill="none" stroke="#c98a47" stroke-width="1.2"/>';
+    }
+    left -= k;
+  }
+  if (n > 15) o += '<text x="212" y="' + (base - 46) + '" text-anchor="middle" font-family="monospace" font-weight="700" font-size="11" fill="#ffc53d" stroke="#000" stroke-width="3" paint-order="stroke">+' + (n - 15) + '</text>';
+  // guards join the fire: 1 at Campfire, 2 at Bonfire, 3 at Signal fire
+  const guards = st >= 4 ? 3 : st >= 3 ? 2 : st >= 2 ? 1 : 0;
+  [[34, 0], [58, 1], [168, 0]].slice(0, guards).forEach(([x, flip]) => {
+    o += '<g transform="translate(' + x + ' ' + base + ')' + (flip ? ' scale(-1 1)' : '') + '" fill="#1a1416" stroke="#000" stroke-width="1.5">' +
+      '<path d="M-7 0 L-6 -20 Q0 -26 6 -20 L7 0 Z"/><circle cx="0" cy="-30" r="5.5"/><path d="M-5 -34 Q0 -40 6 -33 Z" fill="#3a2a20"/>' +
+      '<path d="M9 2 L12 -46" stroke="#4a3a30" stroke-width="2.5"/><path d="M12 -46 l-3 -7 l6 1 Z" fill="#9aa3ad"/>' +
+      '<path d="M-6 -6 Q0 -2 6 -6" fill="none" stroke="' + (st > 0 ? '#ff7a1a' : '#333') + '" stroke-width="1" opacity=".8"/></g>';
+  });
+  // stones ring
+  for (let i = 0; i < 9; i++) {
+    const a = Math.PI * (i / 8), x = cx - Math.cos(a) * 40, y = base + 2 - Math.sin(a) * 3 + (i % 2) * 2;
+    o += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="8" ry="5" fill="#4b4540" stroke="#000" stroke-width="2.2"/>';
+  }
+  // the burning logs
+  o += '<g stroke="#000" stroke-width="2.2"><rect x="' + (cx - 26) + '" y="' + (base - 9) + '" width="52" height="9" rx="4.5" fill="' + (st ? '#6b3e1f' : '#3d3631') + '" transform="rotate(-12 ' + cx + ' ' + base + ')"/><rect x="' + (cx - 26) + '" y="' + (base - 9) + '" width="52" height="9" rx="4.5" fill="' + (st ? '#7a4824' : '#45403a') + '" transform="rotate(14 ' + cx + ' ' + base + ')"/></g>';
+  if (st === 0) {
+    o += '<g fill="#9a948d"><circle class="smoke" cx="' + cx + '" cy="' + (base - 14) + '" r="7"/><circle class="smoke" cx="' + (cx + 6) + '" cy="' + (base - 20) + '" r="5" style="animation-delay:1.5s"/></g>';
+    o += '<circle cx="' + (cx - 6) + '" cy="' + (base - 6) + '" r="2" fill="#ff5a1a"/><circle cx="' + (cx + 8) + '" cy="' + (base - 4) + '" r="1.6" fill="#ff5a1a"/>';
+  } else {
+    const fh = 26 + 100 * h, fw = 22 + 40 * h, top = base - 6 - fh;
+    const flame = (cls, w, hh, dx, fill) => { const b = base - 6, x = cx + dx; return '<path class="' + cls + '" d="M' + (x - w / 2) + ' ' + b + ' C' + (x - w / 2) + ' ' + (b - hh * .45) + ' ' + (x - w * .1) + ' ' + (b - hh * .7) + ' ' + x + ' ' + (b - hh) + ' C' + (x + w * .15) + ' ' + (b - hh * .62) + ' ' + (x + w / 2) + ' ' + (b - hh * .45) + ' ' + (x + w / 2) + ' ' + b + ' Z" fill="' + fill + '" stroke="#000" stroke-width="2.4" stroke-linejoin="round"/>'; };
+    if (st >= 2) o += flame('fl2', fw * .7, fh * .72, -fw * .34, blue ? '#2a7dff' : '#ff4a12') + flame('fl2', fw * .66, fh * .66, fw * .36, blue ? '#2a7dff' : '#ff4a12');
+    o += flame('fl1', fw, fh, 0, 'url(#' + id + ')');
+    o += flame('fl3', fw * .42, fh * .48, 0, blue ? '#f2ffff' : '#fff2a8');
+    const sparks = Math.min(16, 2 + Math.floor(n / 2));
+    for (let i = 0; i < sparks; i++) o += '<circle class="spark" cx="' + (cx + (r() - .5) * fw * 1.3).toFixed(1) + '" cy="' + (top + fh * .45 + r() * 18).toFixed(1) + '" r="' + (1.3 + r() * 1.6).toFixed(1) + '" fill="' + (blue ? '#bfe9ff' : '#ffd36a') + '" style="animation-delay:' + (r() * 2.4).toFixed(2) + 's"/>';
+  }
+  // relics by the fire once earned: Ember Lantern (7), Night Warden's Horn (30)
+  if (n >= 7) o += '<g transform="translate(78 ' + base + ')"><path d="M0 0 V-40 M-2 -40 H12" stroke="#2b2522" stroke-width="3" fill="none"/><path d="M9 -40 v4" stroke="#2b2522" stroke-width="1.5"/><rect x="3" y="-36" width="12" height="15" rx="2" fill="#ffc53d" stroke="#000" stroke-width="2"/><circle cx="9" cy="-28.5" r="3.2" fill="#fff6c0"/></g>';
+  if (wx) o += weatherSvg(wx);
+  if (n >= 30) o += '<g transform="translate(140 ' + (base - 2) + ')"><path d="M0 0 C8 -2 18 -8 22 -22 L27 -20 C24 -4 12 4 1 5 Z" fill="#e8d9b8" stroke="#000" stroke-width="2"/><path d="M22 -22 l5 2" stroke="#8a6a3a" stroke-width="3"/></g>';
+  return o + '</svg>';
+}
+const PRICE_RARITY = p => p < 25 ? 'Common' : p < 50 ? 'Uncommon' : p < 100 ? 'Rare' : p < 250 ? 'Epic' : p < 500 ? 'Legendary' : 'Mythic';
+function crateSvg(it) {
+  const pct = it.open ? 1 : (it.lock_days - it.days_left) / it.lock_days;
+  const C = 2 * Math.PI * 13;
+  let o = '<svg viewBox="0 0 120 100" aria-hidden="true">';
+  if (it.open) {
+    o += '<g class="rays" opacity=".55">' + Array.from({ length: 10 }, (_, i) => '<path d="M60 50 L' + (60 + 70 * Math.cos(i * Math.PI / 5)).toFixed(1) + ' ' + (50 + 70 * Math.sin(i * Math.PI / 5)).toFixed(1) + ' L' + (60 + 70 * Math.cos(i * Math.PI / 5 + .18)).toFixed(1) + ' ' + (50 + 70 * Math.sin(i * Math.PI / 5 + .18)).toFixed(1) + 'Z" fill="var(--cr)"/>').join('') + '</g>';
+  }
+  // body
+  o += '<rect x="14" y="44" width="92" height="46" rx="5" fill="#6a4524" stroke="#000" stroke-width="3"/>';
+  o += '<path d="M14 59 H106 M14 74 H106" stroke="#3d2614" stroke-width="2.5"/>';
+  o += '<rect x="14" y="44" width="92" height="46" rx="5" fill="none" stroke="var(--cr)" stroke-width="2" opacity=".9" transform="translate(0 0)"/>';
+  o += '<path d="M24 44 V90 M96 44 V90" stroke="var(--cr)" stroke-width="5"/><path d="M24 44 V90 M96 44 V90" stroke="#000" stroke-width="1" opacity=".5"/>';
+  // lid
+  o += it.open
+    ? '<g transform="rotate(-24 14 42)"><path d="M14 42 V30 Q60 14 106 30 V42 Z" fill="#7b532c" stroke="#000" stroke-width="3"/><path d="M24 40 V27 M96 40 V27" stroke="var(--cr)" stroke-width="5"/></g><ellipse cx="60" cy="46" rx="40" ry="6" fill="var(--cr)" opacity=".9"/><ellipse cx="60" cy="46" rx="26" ry="3.5" fill="#fff" opacity=".85"/>'
+    : '<path d="M14 44 V32 Q60 16 106 32 V44 Z" fill="#7b532c" stroke="#000" stroke-width="3"/><path d="M24 42 V29 M96 42 V29" stroke="var(--cr)" stroke-width="5"/>';
+  if (!it.open) {
+    // chains
+    o += '<path d="M10 36 L110 84 M110 36 L10 84" stroke="#9aa3ad" stroke-width="5" stroke-dasharray="7 3" stroke-linecap="round"/><path d="M10 36 L110 84 M110 36 L10 84" stroke="#000" stroke-width="1.2" stroke-dasharray="7 3" opacity=".6"/>';
+    // padlock with progress ring
+    o += '<circle cx="60" cy="60" r="17" fill="#120e10" stroke="#000" stroke-width="2.5"/>';
+    o += '<circle cx="60" cy="60" r="13" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="4"/>';
+    o += '<circle cx="60" cy="60" r="13" fill="none" stroke="var(--ice)" stroke-width="4" stroke-dasharray="' + (C * pct).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)" stroke-linecap="round"/>';
+    o += '<path d="M55 58 V54 a5 5 0 0 1 10 0 V58" fill="none" stroke="#c9ced6" stroke-width="2.5"/><rect x="52.5" y="57" width="15" height="11" rx="2" fill="#ffc53d" stroke="#000" stroke-width="2"/>';
+  } else {
+    o += '<g transform="translate(60 72)"><path d="M-8 -2 V-7 a6 6 0 0 1 12 -2" fill="none" stroke="#c9ced6" stroke-width="2.5"/><rect x="-10" y="-3" width="15" height="11" rx="2" fill="#ffc53d" stroke="#000" stroke-width="2"/></g>';
+  }
+  return o + '</svg>';
+}
+function hoardSvg(total) {
+  // A coin pile that grows with what was kept from the gate (log scale).
+  const coins = total > 0 ? Math.min(21, 2 + Math.round(Math.log10(1 + total) * 5)) : 0;
+  let o = '<svg viewBox="0 0 120 80" aria-hidden="true"><ellipse cx="60" cy="72" rx="52" ry="7" fill="rgba(0,0,0,.5)"/>';
+  if (!coins) o += '<text x="60" y="52" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.4)" font-family="monospace">EMPTY</text>';
+  const r = rng('hoard');
+  for (let row = 0, left = coins; left > 0 && row < 6; row++) {
+    const n = Math.min(left, 6 - row);
+    for (let k = 0; k < n; k++) {
+      const x = 60 + (k - (n - 1) / 2) * 15 + (r() - .5) * 3, y = 66 - row * 7;
+      o += '<g transform="translate(' + x.toFixed(1) + ' ' + y + ')"><ellipse rx="8" ry="4" fill="#ffc53d" stroke="#000" stroke-width="1.8"/><ellipse rx="4.5" ry="2" fill="none" stroke="#b07a10" stroke-width="1.2"/></g>';
+    }
+    left -= n;
+  }
+  return o + '</svg>';
+}
 function renderWatchFront() {
   const box = $('watch');
   const w = state && state.watch;
   box.hidden = !w;
   if (!w) return;
-  $('watchStreak').textContent = w.streak ? '🔥 ' + nights(w.streak) : '';
+  const logs = logsOf(w);
+  $('watchStreak').textContent = logs ? '🔥 ' + logsTxt(logs) : '';
+  const wx = w.fire && w.fire.weather;
+  const fkey = logs + ':' + (wx ? wx.key : '');
+  if ($('watchFire').dataset.n !== fkey) { $('watchFire').innerHTML = campfireSvg(logs, false, wx && wx.key); $('watchFire').dataset.n = fkey; }
+  $('watchWx').innerHTML = w.today_status ? '' : wxChip(wx);
+  const st = fireStage(logs), nx = FIRE_STAGES[st + 1];
+  $('watchStage').textContent = FIRE_STAGES[st].name + (nx ? ' · ' + (nx.at - logs) + ' to ' + nx.name.toLowerCase() : '');
   $('embers').innerHTML = w.days.map(d => '<span class="em' + (d.status === 'held' ? ' lit' : d.status === 'spent' ? ' spent' : '') + (d.day === w.today ? ' today' : '') + '" title="' + DAYS[dowOf(d.day)] + '">' + FLAME + '</span>').join('');
   let q, html;
   if (w.today_status === 'held') {
-    q = 'Line held tonight. The guards add a log to the fire.';
+    q = 'Line held tonight. The guards add ' + (w.fire && w.fire.today > 1 ? w.fire.today + ' logs' : 'a log') + ' to the fire.';
     html = '<div class="watch-done"><span>✓ Held the line</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
   } else if (w.today_status === 'spent') {
     q = 'Logged. Tomorrow is a new watch. The Vault is untouched.';
-    html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + '</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
+    html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + (w.fire && w.fire.today < 0 ? ' · −' + logsTxt(-w.fire.today) : '') + '</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
   } else if (spentDraft) {
     q = 'What did you spend on? Only a log, not a breach.';
     html = '<form id="spentForm" autocomplete="off"><div class="spentform"><input class="inp sm" id="spAmt" type="text" inputmode="decimal" placeholder="€" required /><input class="inp sm" id="spWhat" placeholder="What for?" maxlength="80" required /></div>' +
       '<div class="btns"><button class="btn ghost small" type="button" data-w="cancel">Cancel</button><button class="btn danger small" type="submit">Log spend</button></div></form>';
   } else {
-    q = 'Did you hold the line today? No unplanned spending; groceries, bills and fixed costs don\'t count.';
+    q = 'Did you hold the line today? Groceries, bills and fixed costs don\'t count.';
     html = '<div class="btns"><button class="btn good small" type="button" data-w="held">Held the line</button><button class="btn ghost small" type="button" data-w="spent">Spent</button></div>';
   }
   $('watchQ').textContent = q;
@@ -823,7 +1024,7 @@ $('watch').addEventListener('click', async e => {
   if (w === 'cancel') { spentDraft = false; renderWatchFront(); return; }
   if (w === 'held') {
     const r = await send({ action: 'watch', status: 'held' }, 'Holding the line…');
-    if (r && r.relic) splash('Relic Earned', 'var(--ember)', [r.relic, 'Watch streak ' + nights(r.streak)], 'It glows by the campfire');
+    if (r && r.relic) splash('Relic Earned', 'var(--ember)', [r.relic, 'The fire has ' + logsTxt(r.logs || 0)], 'It glows by the campfire');
     else if (r) toast(r.message);
   }
   if (w === 'undo') { const r = await send({ action: 'watch_undo' }, 'Clearing…'); if (r) toast(r.message); }
@@ -836,14 +1037,24 @@ function renderWatchPanel() {
   const cur = curOf();
   const week = w.days.map(d => '<div class="wd ' + (d.status || '') + (d.day === w.today ? ' today' : '') + '"><b>' + DAYS[dowOf(d.day)] + '</b><span>' + (d.status === 'held' ? '🔥' : d.status === 'spent' ? '✕' : d.day < w.today ? '·' : d.day === w.today ? '?' : '') + '</span></div>').join('');
   const left = Math.max(0, w.bonus_needed - w.held_week);
+  const logs = logsOf(w), st = fireStage(logs), nx = FIRE_STAGES[st + 1], cs = FIRE_STAGES[st];
+  const prog = nx ? (logs - cs.at) / (nx.at - cs.at) : 1;
+  const burned = w.fire && w.fire.today < 0 ? -w.fire.today : 0;
   el.innerHTML =
+    '<div class="camp" style="--warm:' + (0.15 + 0.5 * Math.min(1, logs / 30)).toFixed(2) + '"><div class="camp-cap"><div class="camp-stage">' + esc(cs.name) + '</div><div class="camp-n">' + logs + '<small>LOGS</small></div></div>' + campfireSvg(logs, true, w.fire && w.fire.weather && w.fire.weather.key) +
+      '<div class="camp-next">' + (w.fire && w.fire.weather ? wxChip(w.fire.weather) : '') + '<div class="hint" style="margin:0 0 6px">' + (burned ? 'Tonight\'s spend burned ' + logsTxt(burned) + '. ' : '') + (nx ? (nx.at - logs) + ' more log' + (nx.at - logs === 1 ? '' : 's') + ' and it grows into a ' + esc(nx.name.toLowerCase()) + '.' : 'It never goes out now.') + '<br>+1 log a held night · a spend burns 1 per €10 · no answer burns 1, and the weather changes each night. In a row: ' + nights(w.streak) + ', best ' + nights(w.best_streak) + '.</div>' +
+      '<div class="bonus"><i style="width:' + Math.round(prog * 100) + '%"></i></div>' +
+      '<div class="stages">' + FIRE_STAGES.slice(1).map((s, i) => '<span class="' + (st >= i + 1 ? 'on' : '') + '">' + s.at + '</span>').join('') + '</div></div></div>' +
+    (w.fire && w.fire.nights && w.fire.nights.length ? '<div class="sec">Last nights at the fire</div><ul class="nights">' + w.fire.nights.map(x => {
+      const wxd = WX[x.weather] || {};
+      return '<li><span class="nd">' + esc(shortDay(x.day).split(' ').slice(0, 2).join(' ')) + '</span><span>' + (wxd.ic || '') + ' ' + esc(x.status === 'held' ? 'Held' : x.status === 'spent' ? 'Spent' : 'No answer') + ' · <span style="color:var(--dim)">' + esc(wxd.name || x.weather) + '</span></span><span class="n ' + (x.delta > 0 ? 'up' : 'down') + '">' + (x.delta > 0 ? '+' : '−') + Math.abs(x.delta) + '</span></li>';
+    }).join('') + '</ul>' : '') +
     '<div class="sec">This week</div><div class="week">' + week + '</div>' +
     '<div class="stat wide" style="margin-top:6px"><div class="k">Loot bonus</div><div class="v">' + Math.min(w.held_week, w.bonus_needed) + ' / ' + w.bonus_needed + ' held days</div>' +
       '<div class="bonus"><i style="width:' + Math.min(100, w.held_week / w.bonus_needed * 100) + '%"></i></div>' +
       '<div class="hint">' + (w.bonus ? 'Bonus earned: Monday\'s loot goes up one rarity.' : left + ' more held day' + (left === 1 ? '' : 's') + ' and Monday\'s loot goes up one rarity.') + '</div></div>' +
-    '<div class="sec">Streak</div><div class="grid">' +
-      stat('Current', nights(w.streak), 'ember') + stat('Best', nights(w.best_streak)) +
-      stat('Held this month', w.month.held + ' / ' + w.month.answered) + stat('Spent this month', esc(money(w.month.spent, cur))) +
+    '<div class="sec">This month</div><div class="grid">' +
+      stat('Held nights', w.month.held + ' / ' + w.month.answered) + stat('Spent', esc(money(w.month.spent, cur))) +
     '</div>' +
     '<div class="sec">Watch relics</div><div class="relics">' + w.relics.map(r => '<div class="relic' + (r.earned ? ' on' : '') + '"><b>' + r.days + '</b>' + esc(r.name) + '</div>').join('') + '</div>' +
     '<div class="sec">Spending log</div>' + (w.spent_log.length ? '<ul class="log">' + w.spent_log.map(s => '<li><div><div class="t">' + esc(s.what) + '</div><div class="s">' + esc(shortDay(s.day)) + '</div></div><span class="amt" style="color:var(--bad)">' + esc(money(s.amount, cur)) + '</span></li>').join('') + '</ul>' : '<div class="empty-note">Nothing logged. Spent days land here, never as a breach.</div>');
@@ -853,21 +1064,22 @@ function renderLocker() {
   document.querySelector('.tab[data-tab="locked"]').hidden = !l;
   if (!l) return;
   const cur = curOf();
-  $('keptBox').innerHTML = '<div class="kept"><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
-    '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' moved into the Vault' : '') + '.</div>' +
-    l.to_move.map(i => '<div style="margin-top:8px"><button class="btn good small wide" type="button" data-l="move" data-id="' + esc(i.id) + '">Move ' + esc(money(i.price, cur)) + ' (' + esc(i.item) + ') into the Vault</button></div>').join('') + '</div>';
-  $('lockerHead').textContent = 'In the locker · ' + (l.slots - l.free) + '/' + l.slots + (l.locked_total ? ' · ' + money(l.locked_total, cur) + ' locked up' : '');
+  $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
+    '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' in the Vault' : '') + '. The pile grows with every one.</div></div></div>' +
+    l.to_move.map(i => '<div style="margin-top:8px"><button class="btn good small wide" type="button" data-l="move" data-id="' + esc(i.id) + '">Move ' + esc(money(i.price, cur)) + ' into the Vault</button></div>').join('') + '</div>';
+  $('lockerHead').textContent = 'In the locker · ' + (l.slots - l.free) + '/' + l.slots;
+  $('lockerSum').textContent = l.locked_total ? money(l.locked_total, cur) + ' locked' : '';
   $('lockForm').style.display = l.free ? '' : 'none';
-  $('lockerItems').innerHTML = (l.free ? '' : '<div class="hint" style="margin:0 0 4px">The locker is full. Let one go to make room.</div>') +
-    (l.locked.length ? l.locked.map(i => {
-      const pct = Math.round((i.lock_days - i.days_left) / i.lock_days * 100);
-      return '<div class="item' + (i.open ? ' open' : '') + '"><div class="item-top"><span class="item-name">' + esc(i.item) + '</span><span class="item-price">' + esc(money(i.price, cur)) + '</span></div>' +
-        '<div style="margin-top:5px">' + (i.open ? '<span class="badge o">Unlocked</span>' : '<span class="badge l">Locked</span>') + '</div>' +
-        (i.open ? '<div class="item-lock"><span>Lock open after ' + i.lock_days + ' days. Still want it?</span></div>' +
-            '<div class="acts"><button class="btn ghost small" type="button" data-l="keep" data-id="' + esc(i.id) + '">Still want it</button><button class="btn good small" type="button" data-l="release" data-id="' + esc(i.id) + '">Let it go</button></div>'
-          : '<div class="item-lock"><div class="lockbar"><i style="width:' + pct + '%"></i></div><span>' + i.days_left + ' day' + (i.days_left === 1 ? '' : 's') + ' left</span><button class="linkbtn" type="button" data-l="release" data-id="' + esc(i.id) + '">Let go</button></div>') +
-        '</div>';
-    }).join('') : '<div class="empty-note">Empty. Next time something tempts you, lock it here first.</div>');
+  const crates = l.locked.map(i => {
+    const rar = PRICE_RARITY(i.price);
+    return '<div class="crate' + (i.open ? ' open' : '') + '" style="--cr:var(' + (RARITY_VAR[rar] || '--r-common') + ')">' +
+      (i.open ? '' : '<button class="linkbtn letgo" type="button" data-l="release" data-id="' + esc(i.id) + '">Let go</button>') +
+      crateSvg(i) + '<div class="cr">' + esc(rar) + (i.open ? ' · unlocked' : '') + '</div><div class="cn">' + esc(i.item) + '</div><div class="cp">' + esc(money(i.price, cur)) + '</div>' +
+      (i.open ? '<div class="cd">The lock opened after ' + i.lock_days + ' days. Still want it?</div><div class="acts"><button class="btn ghost small" type="button" data-l="keep" data-id="' + esc(i.id) + '">Still want it</button><button class="btn good small" type="button" data-l="release" data-id="' + esc(i.id) + '">Let it go</button></div>'
+        : '<div class="cd"><b>' + i.days_left + '</b> day' + (i.days_left === 1 ? '' : 's') + ' left</div>') + '</div>';
+  });
+  for (let k = l.locked.length; k < l.slots; k++) crates.push('<div class="crate empty"><i>▢</i>Empty slot</div>');
+  $('lockerItems').innerHTML = crates.join('');
   $('lockerPast').innerHTML = l.history.length ? '<div class="sec">Decided</div><div class="items">' + l.history.map(i => '<div class="item past"><div class="item-top"><span class="item-name">' + esc(i.item) + '</span><span class="item-price">' + esc(money(i.price, cur)) + '</span></div><div style="margin-top:5px">' + (i.status === 'released' ? '<span class="badge k">Let go</span>' + (i.moved ? ' <span class="badge b">In the Vault</span>' : '') : '<span class="badge b">Bought</span>') + '</div></div>').join('') + '</div>' : '';
 }
 $('lockPrice').addEventListener('input', () => { const p = parseAmount($('lockPrice').value); $('lockHint').textContent = p > 0 ? 'Locked for ' + lockDays(p) + ' days' : '1 day per €10 · at least 2, at most 30 days'; });
