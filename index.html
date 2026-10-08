@@ -872,10 +872,10 @@ function weatherSvg(key) {
   if (key === 'drywood') return '<g fill="#ffe08a" opacity=".9">' + [[200, 120], [214, 112], [226, 124]].map(([x, y]) => '<path d="M' + x + ' ' + y + ' l2 -5 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 Z"/>').join('') + '</g>';
   return '<g fill="#fff" opacity=".7">' + [[30, 20], [70, 12], [140, 26], [210, 40], [20, 60], [180, 14]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="1"/>').join('') + '</g>';
 }
-function campfireSvg(n, big, wx) {
+function campfireSvg(n, big, wx, day) {
   const st = fireStage(n);
   const h = st === 0 ? 0 : 0.3 + 0.7 * Math.min(1, Math.log(1 + n) / Math.log(101)); // flame size 0..1
-  const r = rng('fire:' + n);
+  const r = rng('fire:' + (day || '') + ':' + n); // every night the fire looks a little different
   const cx = 112, base = 148, id = 'fg' + (big ? 'b' : 's');
   const blue = st >= 5;
   let o = '<svg class="fire' + (wx === 'wind' || wx === 'storm' || wx === 'breeze' ? ' windy' : '') + '" viewBox="' + (big ? '0 0 240 170' : '16 ' + (st >= 3 ? 30 : 70) + ' 224 ' + (st >= 3 ? 130 : 90)) + '" aria-hidden="true">';
@@ -913,16 +913,24 @@ function campfireSvg(n, big, wx) {
     o += '<g fill="#9a948d"><circle class="smoke" cx="' + cx + '" cy="' + (base - 14) + '" r="7"/><circle class="smoke" cx="' + (cx + 6) + '" cy="' + (base - 20) + '" r="5" style="animation-delay:1.5s"/></g>';
     o += '<circle cx="' + (cx - 6) + '" cy="' + (base - 6) + '" r="2" fill="#ff5a1a"/><circle cx="' + (cx + 8) + '" cy="' + (base - 4) + '" r="1.6" fill="#ff5a1a"/>';
   } else {
-    const fh = 26 + 100 * h, fw = 22 + 40 * h, top = base - 6 - fh;
+    const fh = (26 + 100 * h) * (0.85 + r() * 0.3), fw = (22 + 40 * h) * (0.85 + r() * 0.3), top = base - 6 - fh;
+    const lean = ((r() - .5) * 10).toFixed(1);
+    o += '<g transform="rotate(' + lean + ' ' + cx + ' ' + base + ')">';
     const flame = (cls, w, hh, dx, fill) => { const b = base - 6, x = cx + dx; return '<path class="' + cls + '" d="M' + (x - w / 2) + ' ' + b + ' C' + (x - w / 2) + ' ' + (b - hh * .45) + ' ' + (x - w * .1) + ' ' + (b - hh * .7) + ' ' + x + ' ' + (b - hh) + ' C' + (x + w * .15) + ' ' + (b - hh * .62) + ' ' + (x + w / 2) + ' ' + (b - hh * .45) + ' ' + (x + w / 2) + ' ' + b + ' Z" fill="' + fill + '" stroke="#000" stroke-width="2.4" stroke-linejoin="round"/>'; };
     if (st >= 2) o += flame('fl2', fw * .7, fh * .72, -fw * .34, blue ? '#2a7dff' : '#ff4a12') + flame('fl2', fw * .66, fh * .66, fw * .36, blue ? '#2a7dff' : '#ff4a12');
     o += flame('fl1', fw, fh, 0, 'url(#' + id + ')');
     o += flame('fl3', fw * .42, fh * .48, 0, blue ? '#f2ffff' : '#fff2a8');
     const sparks = Math.min(16, 2 + Math.floor(n / 2));
     for (let i = 0; i < sparks; i++) o += '<circle class="spark" cx="' + (cx + (r() - .5) * fw * 1.3).toFixed(1) + '" cy="' + (top + fh * .45 + r() * 18).toFixed(1) + '" r="' + (1.3 + r() * 1.6).toFixed(1) + '" fill="' + (blue ? '#bfe9ff' : '#ffd36a') + '" style="animation-delay:' + (r() * 2.4).toFixed(2) + 's"/>';
+    o += '</g>';
   }
   // relics by the fire once earned: Ember Lantern (7), Night Warden's Horn (30)
   if (n >= 7) o += '<g transform="translate(78 ' + base + ')"><path d="M0 0 V-40 M-2 -40 H12" stroke="#2b2522" stroke-width="3" fill="none"/><path d="M9 -40 v4" stroke="#2b2522" stroke-width="1.5"/><rect x="3" y="-36" width="12" height="15" rx="2" fill="#ffc53d" stroke="#000" stroke-width="2"/><circle cx="9" cy="-28.5" r="3.2" fill="#fff6c0"/></g>';
+  // a visitor at the fire on some nights: a desert fox, an owl on the woodpile, a skag pup
+  const vis = r();
+  if (st > 0 && vis < .1) o += '<g transform="translate(60 ' + (base + 2) + ')" fill="#c8662a" stroke="#000" stroke-width="1.6"><path d="M0 0 q8 -14 22 -10 l4 -8 l2 9 q4 4 0 9 Z"/><path d="M-2 -2 q-12 -2 -16 -10 q8 2 14 4 Z" fill="#e8a060"/><circle cx="24" cy="-5" r="1" fill="#000" stroke="none"/></g>';
+  else if (st > 0 && vis < .2) o += '<g transform="translate(212 ' + (base - Math.min(5, Math.ceil(Math.min(15, n) / 5)) * 10 - 4) + ')" stroke="#000" stroke-width="1.6"><ellipse rx="7" ry="9" fill="#8a7a66"/><circle cx="-3" cy="-3" r="2.6" fill="#ffd36a"/><circle cx="3" cy="-3" r="2.6" fill="#ffd36a"/><path d="M-6 -8 l-2 -5 l4 3 M6 -8 l2 -5 l-4 3" fill="none"/></g>';
+  else if (st > 0 && vis < .27) o += '<g transform="translate(150 ' + (base + 2) + ')" fill="#6a5a4a" stroke="#000" stroke-width="1.6"><ellipse cx="0" cy="-5" rx="11" ry="6"/><circle cx="11" cy="-9" r="5"/><path d="M14 -13 l4 -4 M9 -14 l1 -5" fill="none"/></g>';
   if (wx) o += weatherSvg(wx);
   if (n >= 30) o += '<g transform="translate(140 ' + (base - 2) + ')"><path d="M0 0 C8 -2 18 -8 22 -22 L27 -20 C24 -4 12 4 1 5 Z" fill="#e8d9b8" stroke="#000" stroke-width="2"/><path d="M22 -22 l5 2" stroke="#8a6a3a" stroke-width="3"/></g>';
   return o + '</svg>';
@@ -981,8 +989,8 @@ function renderWatchFront() {
   const logs = logsOf(w);
   $('watchStreak').textContent = logs ? '🔥 ' + logsTxt(logs) : '';
   const wx = w.fire && w.fire.weather;
-  const fkey = logs + ':' + (wx ? wx.key : '');
-  if ($('watchFire').dataset.n !== fkey) { $('watchFire').innerHTML = campfireSvg(logs, false, wx && wx.key); $('watchFire').dataset.n = fkey; }
+  const fkey = logs + ':' + (wx ? wx.key : '') + ':' + w.today;
+  if ($('watchFire').dataset.n !== fkey) { $('watchFire').innerHTML = campfireSvg(logs, false, wx && wx.key, w.today); $('watchFire').dataset.n = fkey; }
   $('watchWx').innerHTML = w.today_status ? '' : wxChip(wx);
   const st = fireStage(logs), nx = FIRE_STAGES[st + 1];
   $('watchStage').textContent = FIRE_STAGES[st].name + (nx ? ' · ' + (nx.at - logs) + ' to ' + nx.name.toLowerCase() : '');
@@ -1041,13 +1049,13 @@ function renderWatchPanel() {
   const prog = nx ? (logs - cs.at) / (nx.at - cs.at) : 1;
   const burned = w.fire && w.fire.today < 0 ? -w.fire.today : 0;
   el.innerHTML =
-    '<div class="camp" style="--warm:' + (0.15 + 0.5 * Math.min(1, logs / 30)).toFixed(2) + '"><div class="camp-cap"><div class="camp-stage">' + esc(cs.name) + '</div><div class="camp-n">' + logs + '<small>LOGS</small></div></div>' + campfireSvg(logs, true, w.fire && w.fire.weather && w.fire.weather.key) +
-      '<div class="camp-next">' + (w.fire && w.fire.weather ? wxChip(w.fire.weather) : '') + '<div class="hint" style="margin:0 0 6px">' + (burned ? 'Tonight\'s spend burned ' + logsTxt(burned) + '. ' : '') + (nx ? (nx.at - logs) + ' more log' + (nx.at - logs === 1 ? '' : 's') + ' and it grows into a ' + esc(nx.name.toLowerCase()) + '.' : 'It never goes out now.') + '<br>+1 log a held night · a spend burns 1 per €10 · no answer burns 1, and the weather changes each night. In a row: ' + nights(w.streak) + ', best ' + nights(w.best_streak) + '.</div>' +
+    '<div class="camp" style="--warm:' + (0.15 + 0.5 * Math.min(1, logs / 30)).toFixed(2) + '"><div class="camp-cap"><div class="camp-stage">' + esc(cs.name) + '</div><div class="camp-n">' + logs + '<small>LOGS</small></div></div>' + campfireSvg(logs, true, w.fire && w.fire.weather && w.fire.weather.key, w.today) +
+      '<div class="camp-next">' + (w.fire && w.fire.weather ? wxChip(w.fire.weather) : '') + '<div class="hint" style="margin:0 0 6px">' + (burned ? 'Tonight\'s spend burned ' + logsTxt(burned) + '. ' : '') + (nx ? (nx.at - logs) + ' more log' + (nx.at - logs === 1 ? '' : 's') + ' and it grows into a ' + esc(nx.name.toLowerCase()) + '.' : 'It never goes out now.') + '<br>A held night adds 1 log, sometimes more (✦ a lucky draw) · a spend burns 1 per €10 · no answer burns 1 · the weather changes each night. In a row: ' + nights(w.streak) + ', best ' + nights(w.best_streak) + '.</div>' +
       '<div class="bonus"><i style="width:' + Math.round(prog * 100) + '%"></i></div>' +
       '<div class="stages">' + FIRE_STAGES.slice(1).map((s, i) => '<span class="' + (st >= i + 1 ? 'on' : '') + '">' + s.at + '</span>').join('') + '</div></div></div>' +
     (w.fire && w.fire.nights && w.fire.nights.length ? '<div class="sec">Last nights at the fire</div><ul class="nights">' + w.fire.nights.map(x => {
       const wxd = WX[x.weather] || {};
-      return '<li><span class="nd">' + esc(shortDay(x.day).split(' ').slice(0, 2).join(' ')) + '</span><span>' + (wxd.ic || '') + ' ' + esc(x.status === 'held' ? 'Held' : x.status === 'spent' ? 'Spent' : 'No answer') + ' · <span style="color:var(--dim)">' + esc(wxd.name || x.weather) + '</span></span><span class="n ' + (x.delta > 0 ? 'up' : 'down') + '">' + (x.delta > 0 ? '+' : '−') + Math.abs(x.delta) + '</span></li>';
+      return '<li><span class="nd">' + esc(shortDay(x.day).split(' ').slice(0, 2).join(' ')) + '</span><span>' + (wxd.ic || '') + ' ' + esc(x.status === 'held' ? 'Held' : x.status === 'spent' ? 'Spent' : 'No answer') + ' · <span style="color:var(--dim)">' + esc(wxd.name || x.weather) + '</span></span><span class="n ' + (x.delta > 0 ? 'up' : 'down') + '">' + (x.lucky ? '✦ ' : '') + (x.delta > 0 ? '+' : '−') + Math.abs(x.delta) + '</span></li>';
     }).join('') + '</ul>' : '') +
     '<div class="sec">This week</div><div class="week">' + week + '</div>' +
     '<div class="stat wide" style="margin-top:6px"><div class="k">Loot bonus</div><div class="v">' + Math.min(w.held_week, w.bonus_needed) + ' / ' + w.bonus_needed + ' held days</div>' +
