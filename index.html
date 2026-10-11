@@ -203,7 +203,8 @@ select.inp{font-size:13px}
 /* the front stays light: one row (weather icon, Held with the log count, Spent); the photo carries the camp */
 .watch .watch-head,.watch .watch-q,.watch #watchWx,.watch .watch-row{display:none!important}
 .watch.folded .watch-act{margin-top:4px}
-.wbar{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:stretch}
+.wbar{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch}
+.wbar .wjournal{text-decoration:none}
 .wbar .btn{display:flex;align-items:center;justify-content:center;gap:10px}
 .wbar .wspent{padding-inline:16px}
 .wlogs{font-size:11px;letter-spacing:.02em;padding:2px 6px;border-radius:10px;background:rgba(0,0,0,.18);text-shadow:none}
@@ -848,8 +849,9 @@ const logsTxt = n => n + ' log' + (n === 1 ? '' : 's');
 const logsOf = w => (w.fire ? w.fire.logs : w.streak) || 0;
 const shortDay = key => { if (!key) return ''; const [, m, d] = key.split('-').map(Number); return DAYS[dowOf(key)] + ' ' + d + ' ' + MONTHS[m - 1]; };
 const lockDays = p => Math.min(30, Math.max(2, Math.ceil(p / 10)));
-let spentDraft = false;
 let watchHtml = '', wxLine = '';
+// Where the Nightly Watch is answered now (the admin dashboard's journal page).
+const JOURNAL_URL = 'https://admindashboard.quest-engine.workers.dev/journal';
 function curOf() { return (state && state.vault && state.vault.currency) || 'EUR'; }
 // The guards' campfire grows with the watch streak: every held night adds a
 // log, and at 3, 7, 30 and 100 nights it turns into something bigger.
@@ -1005,52 +1007,31 @@ function renderWatchFront() {
   const st = fireStage(logs), nx = FIRE_STAGES[st + 1];
   $('watchStage').textContent = FIRE_STAGES[st].name + (nx ? ' · ' + (nx.at - logs) + ' to ' + nx.name.toLowerCase() : '');
   $('embers').innerHTML = w.days.map(d => '<span class="em' + (d.status === 'held' ? ' lit' : d.status === 'spent' ? ' spent' : '') + (d.day === w.today ? ' today' : '') + '" title="' + DAYS[dowOf(d.day)] + '">' + FLAME + '</span>').join('');
+  // The check-in itself is on the journal page (Roy, 11 Oct 2026: "remove the
+  // button on the vault quest card"); the card only shows tonight's answer.
   let q, html;
   if (w.today_status === 'held') {
     q = 'Line held tonight. The guards add ' + (w.fire && w.fire.today > 1 ? w.fire.today + ' logs' : 'a log') + ' to the fire.';
-    html = '<div class="watch-done"><span>✓ Held the line</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
+    html = '<div class="watch-done"><span>✓ Held the line</span></div>';
   } else if (w.today_status === 'spent') {
     q = 'Logged. Tomorrow is a new watch. The Vault is untouched.';
-    html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + (w.fire && w.fire.today < 0 ? ' · −' + logsTxt(-w.fire.today) : '') + '</span><button class="linkbtn" type="button" data-w="undo">Undo</button></div>';
-  } else if (spentDraft) {
-    q = 'What did you spend on? Only a log, not a breach.';
-    html = '<form id="spentForm" autocomplete="off"><div class="spentform"><input class="inp sm" id="spAmt" type="text" inputmode="decimal" placeholder="€" required /><input class="inp sm" id="spWhat" placeholder="What for?" maxlength="80" required /></div>' +
-      '<div class="btns"><button class="btn ghost small" type="button" data-w="cancel">Cancel</button><button class="btn danger small" type="submit">Log spend</button></div></form>';
+    html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + (w.fire && w.fire.today < 0 ? ' · −' + logsTxt(-w.fire.today) : '') + '</span></div>';
   } else {
-    q = 'Did you hold the line today? Groceries, bills and fixed costs don\'t count.';
+    q = 'Check in on your journal tonight.';
     const wi = WX[wx && wx.key] || WX.clear;
     wxLine = wx ? wx.name + '. ' + wx.line : '';
     html = '<div class="wbar"><button class="wx-ic ' + (wi.cls || '') + '" type="button" data-w="wxinfo" aria-label="Tonight\'s weather">' + wi.ic + '</button>' +
-      '<button class="btn good small" type="button" data-w="held">Held the line<span class="wlogs">🔥 ' + logs + '</span></button>' +
-      '<button class="btn ghost small wspent" type="button" data-w="spent">Spent</button></div>';
+      '<a class="btn ghost small wjournal" href="' + JOURNAL_URL + '" target="_blank" rel="noopener">Check in on your journal<span class="wlogs">🔥 ' + logs + '</span></a></div>';
   }
   $('watchQ').textContent = q;
-  if (html === watchHtml) return; // keep a half-typed spend
+  if (html === watchHtml) return;
   watchHtml = html;
   $('watchAct').innerHTML = html;
-  const sf = $('spentForm');
-  if (sf) sf.addEventListener('submit', async e => {
-    e.preventDefault(); e.stopPropagation();
-    const amt = parseAmount($('spAmt').value), what = $('spWhat').value.trim();
-    if (!(amt > 0)) { toast('Enter what you spent', true); return; }
-    if (!what) { toast('What was it for?', true); return; }
-    const r = await send({ action: 'watch', status: 'spent', amount: amt, what }, 'Logging…');
-    if (r) { spentDraft = false; toast(r.message); render(); }
-  });
 }
-$('watch').addEventListener('click', async e => {
+$('watch').addEventListener('click', e => {
   const b = e.target.closest('[data-w]'); if (!b) return;
   e.stopPropagation();
-  const w = b.dataset.w;
-  if (w === 'wxinfo') { toast(wxLine || 'Clear night.'); return; }
-  if (w === 'spent') { spentDraft = true; renderWatchFront(); const a = $('spAmt'); if (a) a.focus(); return; }
-  if (w === 'cancel') { spentDraft = false; renderWatchFront(); return; }
-  if (w === 'held') {
-    const r = await send({ action: 'watch', status: 'held' }, 'Holding the line…');
-    if (r && r.relic) splash('Relic Earned', 'var(--ember)', [r.relic, 'The fire has ' + logsTxt(r.logs || 0)], 'It glows by the campfire');
-    else if (r) toast(r.message);
-  }
-  if (w === 'undo') { const r = await send({ action: 'watch_undo' }, 'Clearing…'); if (r) toast(r.message); }
+  if (b.dataset.w === 'wxinfo') toast(wxLine || 'Clear night.');
 });
 function renderWatchPanel() {
   const el = $('p-watch');
