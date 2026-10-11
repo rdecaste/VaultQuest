@@ -2,7 +2,7 @@
 
 A savings-goal dashboard styled as a vault you guard and evolve. It stands on its own and shares nothing with Boss or the Quest dashboards.
 
-- `index.html` is the card, at https://vaultquest.quest-engine.workers.dev (Cloudflare, behind Roy's Cloudflare Access login). The front of the card shows Tier, Core and Shield. Under the Shield sits the Nightly Watch (one tap a day: held the line, or spent). Tap the card to flip it for telemetry, the Watch and Locked Loot (the no-spend wishlist) tabs, controls, the log, loot and lore.
+- `index.html` is the card, at https://vaultquest.quest-engine.workers.dev (Cloudflare, behind Roy's Cloudflare Access login). The front of the card shows Tier, Core and Shield. Under the Shield sits the Nightly Watch: tonight's answer (held the line, or spent) and the campfire. Since 11 Oct 2026 it is answered on the journal page of the admin dashboard (rdecaste/journal), not on the card; the card links there and shows the answer. Tap the card to flip it for telemetry, the Watch and Locked Loot (the no-spend wishlist) tabs, controls, the log, loot and lore.
 - The page reads its state from the Quest Engine (Cloudflare Worker, `rdecaste/quest-engine`) at `GET /vault` and sends actions to `POST /vault/action` (vault passcode).
 
 ## How it runs
