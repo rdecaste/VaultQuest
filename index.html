@@ -120,6 +120,7 @@ button,input,select{font:inherit;color:inherit}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:1 0 auto;padding:8px 10px;border:2px solid #000;border-radius:4px;background:rgba(255,255,255,.07);font:700 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);cursor:pointer}
 .tab.on{background:var(--hud);color:#000;box-shadow:2px 2px 0 #000}
+.tab small{display:block;margin-top:3px;font:600 8.5px/1 var(--mono);letter-spacing:.06em;text-transform:none;opacity:.7}
 .panel{flex:1;overflow-y:auto;padding:4px 12px 16px;-webkit-overflow-scrolling:touch;cursor:auto;user-select:text;-webkit-user-select:text}
 .panel[hidden]{display:none}
 .sec{margin:12px 0 6px;font:700 10px/1 var(--mono);letter-spacing:.22em;color:var(--hud);text-transform:uppercase}
@@ -197,13 +198,45 @@ select.inp{font-size:13px}
 .busy.on{display:flex}
 .busy .spin{width:56px;height:56px;border:4px solid rgba(255,197,61,.25);border-top-color:var(--hud);border-radius:50%;animation:spin 800ms linear infinite}
 .busy div:last-child{font:700 11px/1 var(--mono);letter-spacing:.24em;color:var(--hud);text-transform:uppercase}
+/* ---------- THE FOUR SEALS (front overlay and the Seals tab) ---------- */
+/* The gate's four seals, one per loan, drawn over the photo. The svg uses the
+   photo's own 2:3 frame with "slice", the same crop as object-fit:cover. */
+.seals-ov{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:none}
+.front.sealed .seals-ov{display:block}
+.seals-ov .seal-g{pointer-events:all;cursor:pointer}
+.seals-ov .tgt{animation:sealPulse 2.4s ease-in-out infinite}
+@keyframes sealPulse{0%,100%{opacity:.6}50%{opacity:1}}
+.front.sealed .core-head,.front.sealed .core-num,.front.sealed .energy,.front.sealed .shield,.front.sealed .shield-note{display:none}
+.seal-rows{display:flex;flex-direction:column}
+.seal-row{display:grid;grid-template-columns:46px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.seal-row:first-child{border-top:0}
+.seal-row .mini svg{width:46px;height:46px;display:block}
+.seal-row .nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:700 14px/1.2 var(--mono);letter-spacing:.04em}
+.seal-row .amt{margin-top:4px;font-size:11.5px;line-height:1.4;color:var(--muted)}
+.seal-row .sbar{margin-top:7px;height:6px;border:1.5px solid #000;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}
+.seal-row .sbar i{display:block;height:100%;background:linear-gradient(90deg,var(--hud-2),var(--hud))}
+.seal-row .sacts{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seal-row .paid{font:700 11px/1.2 var(--mono);color:var(--good);letter-spacing:.04em}
+.seal-row .addrow{margin-top:8px;display:none;gap:6px}
+.seal-row.adding .addrow{display:flex}
+.seal-row .extras{margin:6px 0 0;padding:0;list-style:none;font-size:11px;color:var(--dim)}
+.seal-row .extras li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.seal-row.broken .nm{color:var(--good)}
+.stash-log{margin:8px 0 0;padding:0;list-style:none;font-size:11px;color:var(--dim)}
+.stash-log li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 0}
+.seal-sum{margin-top:6px;padding-top:12px;border-top:2px solid rgba(255,197,61,.4);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:700 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#ffe7b0}
 /* ---------- NIGHTLY WATCH (front) and LOCKED LOOT (back) ---------- */
 :root{--ember:#ff7a1a;--ice:#7fd8ff}
 .watch{margin-top:10px;padding:0 2px;pointer-events:auto;cursor:auto;text-shadow:0 1px 2px #000,0 0 6px rgba(0,0,0,.8)}
 /* the front stays light: one row (weather icon, Held with the log count, Spent); the photo carries the camp */
 .watch .watch-head,.watch .watch-q,.watch #watchWx,.watch .watch-row{display:none!important}
 .watch.folded .watch-act{margin-top:4px}
-.wbar{display:grid;grid-template-columns:auto auto;justify-content:start;gap:8px;align-items:stretch}
+.wbar{display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:stretch}
+.wbar .wx-ic{width:44px;min-height:44px}
+.wgo{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:4px 14px;border:2px solid #000;border-radius:6px;background:rgba(10,6,4,.55);box-shadow:3px 3px 0 #000;text-decoration:none}
+.wk{display:flex;flex-direction:column;align-items:center;gap:1px}
+.wk small{font:600 9px/1 var(--mono);color:rgba(255,231,176,.7)}
+.wk .em{width:18px;height:22px}
 .wbar .wjournal{text-decoration:none;padding-inline:12px;font-size:13px}
 .wbar .btn{display:flex;align-items:center;justify-content:center;gap:10px}
 .wbar .wspent{padding-inline:16px}
@@ -347,6 +380,7 @@ select.inp{font-size:13px}
           </svg>
         </div>
       </div>
+      <svg class="seals-ov" id="sealsOv" viewBox="0 0 1000 1500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
       <div class="shade"></div><div class="scan"></div><div class="fx-breach"></div><div class="fx-funded"></div>
 
       <div class="hud-top">
@@ -377,7 +411,7 @@ select.inp{font-size:13px}
           <div class="watch-act" id="watchAct"></div>
         </div>
       </div>
-      <div class="tap-hint" id="tapHint">Tap for telemetry</div>
+      <div class="tap-hint" id="tapHint">Tap to flip</div>
 
       <div class="empty" id="empty">
         <h1>No Active Vault</h1>
@@ -398,14 +432,16 @@ select.inp{font-size:13px}
       </div>
       <div class="tabs" id="tabs">
         <button class="tab on" data-tab="telemetry">Telemetry</button>
-        <button class="tab" data-tab="watch" hidden>Watch</button>
-        <button class="tab" data-tab="locked" hidden>Locked</button>
+        <button class="tab" data-tab="seals" hidden>Seals<small>the debt</small></button>
+        <button class="tab" data-tab="watch" hidden>Fire<small>patience</small></button>
+        <button class="tab" data-tab="locked" hidden>Stash<small>to spend</small></button>
         <button class="tab" data-tab="controls">Controls</button>
         <button class="tab" data-tab="log">Log</button>
-        <button class="tab" data-tab="loot">Loot</button>
-        <button class="tab" data-tab="lore">Lore</button>
+        <button class="tab" data-tab="loot">Loot<small>rewards</small></button>
+        <button class="tab" data-tab="lore">Lore<small>the story</small></button>
       </div>
       <div class="panel" id="p-telemetry"></div>
+      <div class="panel" id="p-seals" hidden></div>
       <div class="panel" id="p-watch" hidden></div>
       <div class="panel" id="p-locked" hidden>
         <div id="keptBox"></div>
@@ -710,12 +746,160 @@ function renderFront() {
   else if (sh.breached) { note.className = 'shield-note'; note.textContent = 'Shield compromised · evolution blocked this cycle'; }
   else if (!sh.armed) { note.className = 'shield-note ok'; note.textContent = 'Campaign starts ' + dayLabel(sh.startKey); }
   else { note.className = 'shield-note ok'; note.textContent = ''; }
-  front.classList.toggle('breached', sh.breached);
+  const seals = state.seals && state.seals.seals && state.seals.seals.length ? state.seals : null;
+  front.classList.toggle('sealed', !!seals);
+  front.classList.toggle('breached', sh.breached && !seals);
   front.classList.toggle('funded', !!v.funded);
   setMedia(v.form);
-  runTicker(transmissions(v, sh, now));
+  renderSealsFront(seals);
+  runTicker(seals ? sealTransmissions(seals, now) : transmissions(v, sh, now));
   renderWatchFront();
 }
+
+// ---------- the four seals ----------
+// One seal per loan, holding the gate shut (Roy, 13 Oct 2026: "the seals should
+// be part of the gate in the visual", "don't show percentages or numbers on
+// the front"). Drawn over the photo in its own 1000 × 1500 frame: the door's
+// centre and radius (GATE) set where the seals and their bolts sit. Tier 1's
+// door; a new visual is made with the seals in the same place.
+const GATE = { cx: 497, cy: 789, r: 297, seal: 53, at: 0.479 };
+const SEAL_POS = [[-1, -1], [1, -1], [1, 1], [-1, 1]]; // slot 0 top left, then clockwise
+const EMBLEMS = [
+  // 0 sun
+  '<circle r="10"/>' + Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, c = Math.cos(a), s = Math.sin(a); return '<path d="M' + (15 * c).toFixed(1) + ' ' + (15 * s).toFixed(1) + ' L' + (25 * c).toFixed(1) + ' ' + (25 * s).toFixed(1) + '"/>'; }).join(''),
+  // 1 eye
+  '<path d="M-26 0 Q0 -20 26 0 Q0 20 -26 0Z"/><circle r="7"/><circle r="2.5" class="fill"/>',
+  // 2 cog
+  '<path d="' + Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, p = (r, d) => (r * Math.cos(a + d)).toFixed(1) + ' ' + (r * Math.sin(a + d)).toFixed(1); return (i ? 'L' : 'M') + p(17, -0.22) + ' L' + p(25, -0.16) + ' L' + p(25, 0.16) + ' L' + p(17, 0.22); }).join(' ') + 'Z"/><circle r="8"/>',
+  // 3 crescent and star
+  '<path d="M6 -22 A23 23 0 1 0 6 22 A17 17 0 1 1 6 -22Z"/><path d="M15 -6 L17 -1 L22 -1 L18 2 L19.5 7 L15 4 L10.5 7 L12 2 L8 -1 L13 -1Z" class="fill"/>'
+];
+function sealSvg(seal, i) {
+  const [sx, sy] = SEAL_POS[seal.slot] || SEAL_POS[i % 4];
+  const off = GATE.r * GATE.at, x = GATE.cx + sx * off, y = GATE.cy + sy * off, R = GATE.seal;
+  const reach = Math.sqrt(GATE.r * GATE.r - off * off) - off - R - 4; // from the seal's edge to the rim
+  const emblem = '<g class="em-' + (seal.slot % 4) + '" fill="none" stroke="rgba(255,220,170,.62)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">' + EMBLEMS[seal.slot % 4].replace(/class="fill"/g, 'fill="rgba(255,220,170,.62)" stroke="none"') + '</g>';
+  let o = '<g class="seal-g" data-seal="' + esc(seal.id) + '" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')">';
+  if (seal.broken) {
+    // broken: the bolts are drawn back, the disc is cracked and light leaks through
+    o += '<circle r="' + R + '" fill="rgba(8,5,3,.6)" stroke="rgba(255,200,140,.25)" stroke-width="3"/>' +
+      '<g opacity=".35">' + emblem + '</g>' +
+      '<g stroke="#fff1c8" stroke-width="3.6" stroke-linecap="round" fill="none" filter="url(#sealGlow)"><path d="M-6 -53 L3 -22 L-9 -3 L6 15 L-3 53"/><path d="M3 -22 L28 -37 L46 -28"/><path d="M-9 -3 L-37 6 L-51 0"/><path d="M6 15 L34 25 L43 34"/><path d="M-3 53 L-22 40"/></g>' +
+      '<circle r="' + (R + 9) + '" fill="none" stroke="#ffd58a" stroke-width="2" opacity=".45" filter="url(#sealGlow)"/></g>';
+    return o;
+  }
+  // two bolts from the seal into the door frame keep the gate locked
+  const bolt = (dx, dy) => {
+    const horiz = dx !== 0, len = Math.max(20, reach), w = 26;
+    const bx = horiz ? (dx > 0 ? R - 6 : -(R - 6) - len) : -w / 2, by = horiz ? -w / 2 : (dy > 0 ? R - 6 : -(R - 6) - len);
+    const bw = horiz ? len : w, bh = horiz ? w : len;
+    return '<rect x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="5" fill="url(#boltMetal' + (horiz ? 'H' : 'V') + ')" stroke="rgba(0,0,0,.75)" stroke-width="2.5"/>' +
+      '<rect x="' + (bx + (horiz ? 0 : w / 2 - 2)).toFixed(1) + '" y="' + (by + (horiz ? w / 2 - 2 : 0)).toFixed(1) + '" width="' + (horiz ? bw : 4).toFixed(1) + '" height="' + (horiz ? 4 : bh).toFixed(1) + '" fill="rgba(255,170,70,.55)" filter="url(#sealGlow)"/>';
+  };
+  o += bolt(sx, 0) + bolt(0, sy);
+  const c = 2 * Math.PI * R, f = Math.max(0.02, seal.progress);
+  o += '<circle r="' + (R + 4) + '" fill="url(#sealFace)" stroke="rgba(0,0,0,.8)" stroke-width="3"/>' +
+    '<circle r="' + R + '" fill="none" stroke="rgba(255,205,150,.28)" stroke-width="7"/>' +
+    '<circle r="' + (R - 13) + '" fill="none" stroke="rgba(255,205,150,.25)" stroke-width="1.6" stroke-dasharray="4 6"/>' + emblem +
+    '<circle r="' + R + '" fill="none" stroke="#ffb347" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + (c * f).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90)" filter="url(#sealGlow)"' + (seal.target ? ' class="tgt"' : '') + '/></g>';
+  return o;
+}
+const SEAL_DEFS = '<defs><filter id="sealGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+  '<radialGradient id="sealFace"><stop offset="0" stop-color="#3a2a1e" stop-opacity=".78"/><stop offset=".75" stop-color="#1c130d" stop-opacity=".78"/><stop offset="1" stop-color="#0c0806" stop-opacity=".9"/></radialGradient>' +
+  '<linearGradient id="boltMetalH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d7a66"/><stop offset=".45" stop-color="#4a3b2f"/><stop offset="1" stop-color="#21180f"/></linearGradient>' +
+  '<linearGradient id="boltMetalV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d7a66"/><stop offset=".45" stop-color="#4a3b2f"/><stop offset="1" stop-color="#21180f"/></linearGradient></defs>';
+let sealsKey = '';
+function renderSealsFront(sl) {
+  const el = $('sealsOv');
+  const key = sl ? JSON.stringify(sl.seals.map(x => [x.id, x.slot, Math.round(x.progress * 200), x.broken, x.target])) : '';
+  if (key === sealsKey) return;
+  sealsKey = key;
+  el.innerHTML = sl ? SEAL_DEFS + sl.seals.map(sealSvg).join('') : '';
+}
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthName = mk => MONTH_NAMES[Number(String(mk).slice(5, 7)) - 1] || '';
+const WORDS = ['No', 'One', 'Two', 'Three', 'Four'];
+$('sealsOv').addEventListener('click', e => {
+  const g = e.target.closest('.seal-g'); if (!g) return;
+  e.stopPropagation();
+  const sl = state && state.seals, x = sl && sl.seals.find(s => s.id === g.dataset.seal);
+  if (!x) return;
+  toast(x.name + ' seal · ' + (x.broken ? 'broken, paid off' : (x.paid_this_month ? monthName(sl.month) + ' paid' : monthName(sl.month) + ' not paid yet') + (x.target ? ' · the target' : '')));
+});
+// WARDEN on the sealed front: about the seals, never a number.
+function sealTransmissions(sl, now) {
+  const r = rng('warden:' + gameDay(now));
+  const out = [], open = sl.seals.filter(x => !x.broken), broken = sl.seals.filter(x => x.broken);
+  const target = open.find(x => x.target), due = open.filter(x => !x.paid_this_month);
+  if (!open.length) out.push('Every seal is broken. The gate is yours. I will miss the bolts.');
+  else {
+    if (broken.length) out.push('The ' + broken[broken.length - 1].name + ' seal is broken. ' + WORDS[open.length] + ' still hold the gate.');
+    else out.push(pickR(r, ['Four seals hold the gate. Each one gives a little every month.', 'Four bolts, four seals, one very patient door.', 'The seals are holding. They are also losing, slowly. That is the plan.']));
+    if (target) out.push(pickR(r, ['The ' + target.name + ' seal is cracking first.', 'Extra charge goes to the ' + target.name + ' seal. It is starting to glow.']));
+    if (due.length && due.length < open.length) out.push('Still waiting for this month on the ' + due.map(x => x.name).join(', ') + ' seal' + (due.length > 1 ? 's' : '') + '.');
+    else if (!due.length) out.push(pickR(r, ['Every seal got its payment this month. The bolts creak.', 'All seals fed for ' + monthName(sl.month) + '. Nothing to do but hold.']));
+    const raid = raidOf(gameDay(now));
+    out.push('Raid report: the ' + raid.gang + ' ' + raid.tried + '. ' + raid.end);
+  }
+  out.push(pickR(r, ['Reminder: the best loot is the loot you still have.', 'I polished the seals. They did not need it. I needed it.', 'A sand skiff drove past twice today. I have its plates.',
+    'Scanning for impulse purchases in a three-kilometre radius.', 'Somebody left a note on the door: "nice vault". Blushing. Metaphorically.', 'The canyon echoes. It sounds like compound interest.']));
+  return out.filter(l => !/\d/.test(l));
+}
+// The Seals tab: the debt, one row per loan.
+function renderSealsPanel() {
+  const el = $('p-seals');
+  const sl = state && state.seals && state.seals.seals && state.seals.seals.length ? state.seals : null;
+  document.querySelector('.tab[data-tab="seals"]').hidden = !sl;
+  document.querySelector('.tab[data-tab="telemetry"]').hidden = !!sl;
+  document.querySelector('.tab[data-tab="controls"]').hidden = !!sl;
+  document.querySelector('.tab[data-tab="log"]').hidden = !!sl;
+  if (!sl) { el.innerHTML = ''; return; }
+  const on = document.querySelector('.tab.on');
+  if (on && on.hidden) selectTab('seals');
+  const cur = curOf(), mn = monthName(sl.month);
+  const mini = x => '<svg viewBox="-70 -70 140 140">' + (x.broken ? '' : '') + '<circle r="53" fill="#1c130d" stroke="#000" stroke-width="3"/><circle r="53" fill="none" stroke="rgba(255,205,150,.25)" stroke-width="9"/>' +
+    '<g fill="none" stroke="rgba(255,220,170,.8)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">' + EMBLEMS[x.slot % 4].replace(/class="fill"/g, 'fill="rgba(255,220,170,.8)" stroke="none"') + '</g>' +
+    (x.broken ? '<path d="M-6 -53 L3 -22 L-9 -3 L6 15 L-3 53" stroke="#fff1c8" stroke-width="5" fill="none"/>' : '<circle r="53" fill="none" stroke="#ffb347" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + (333 * Math.max(0.02, x.progress)).toFixed(1) + ' 333" transform="rotate(-90)"/>') + '</svg>';
+  const months = Math.max(0, ...sl.seals.map(x => x.payments_left - (x.paid_this_month || x.broken ? 0 : 1)));
+  const free = sl.left > 0 ? monthLabel(addMonths(sl.month, months)) : '';
+  el.innerHTML = '<div class="hint" style="margin:0 0 6px">Each seal is one loan holding the gate shut. Tap <b>' + esc(mn) + ' paid</b> when its payment leaves your account. Extra payments go through Add more.</div>' +
+    '<div class="seal-rows">' + sl.seals.map(x => '<div class="seal-row' + (x.broken ? ' broken' : '') + '" data-id="' + esc(x.id) + '"><div class="mini">' + mini(x) + '</div><div>' +
+      '<div class="nm">' + esc(x.name) + (x.broken ? ' <span class="badge k">Broken</span>' : x.target ? ' <span class="badge o">Target</span>' : '') + '</div>' +
+      '<div class="amt">' + (x.broken ? 'Paid off. ' + esc(money(x.original, cur)) + ' in total.' : esc(money(x.left, cur)) + ' left of ' + esc(money(x.original, cur)) + ' · ' + esc(money(x.monthly, cur)) + ' a month · about ' + x.payments_left + ' payment' + (x.payments_left === 1 ? '' : 's')) + '</div>' +
+      '<div class="sbar"><i style="width:' + (x.progress * 100).toFixed(1) + '%"></i></div>' +
+      (x.broken ? '' : '<div class="sacts">' + (x.paid_this_month ? '<span class="paid">✓ ' + esc(mn) + ' paid · ' + esc(shortDay(x.paid_this_month.day).split(' ').slice(1).join(' ')) + '</span><button class="linkbtn" type="button" data-s="unpaid">Undo</button>'
+        : '<button class="btn good small" type="button" data-s="paid">' + esc(mn) + ' paid</button>') +
+        '<button class="btn ghost small" type="button" data-s="add">+ Add more</button>' + (x.target ? '' : '<button class="linkbtn" type="button" data-s="target">Make target</button>') + '</div>' +
+        '<div class="addrow"><input class="inp sm" type="text" inputmode="decimal" placeholder="€ extra" data-s-amt /><button class="btn small" type="button" data-s="addgo">Add</button></div>') +
+      (x.log.filter(p => p.kind === 'extra').length ? '<ul class="extras">' + x.log.filter(p => p.kind === 'extra').map(p => '<li><span>Extra ' + esc(money(p.amount, cur)) + ' · ' + esc(shortDay(p.day)) + '</span><button class="linkbtn" type="button" data-s="undo" data-p="' + esc(p.id) + '">Remove</button></li>').join('') + '</ul>' : '') +
+      '</div></div>').join('') + '</div>' +
+    '<div class="seal-sum"><span>Left ' + esc(money(sl.left, cur)) + '</span><span>' + esc(money(sl.monthly, cur)) + ' a month</span>' + (free ? '<span>Debt free about ' + esc(free) + '</span>' : '<span>Debt free ★</span>') + '</div>' +
+    '<div class="hint">"About": at the fixed payments, without interest. Extra payments bring it closer.</div>' +
+    '<div class="sec">Vault</div><div class="sacts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost small" type="button" data-act="passcode">Passcode</button>' + (state.vault && state.vault.funded ? '<button class="btn gold small" type="button" data-act="open">Open the Vault</button>' : '') + '</div>';
+}
+const addMonths = (mk, n) => { const [y, m] = mk.split('-').map(Number); const t = y * 12 + (m - 1) + n; return Math.floor(t / 12) + '-' + pad(t % 12 + 1); };
+function selectTab(name) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.dataset.tab === name));
+  ['telemetry', 'seals', 'watch', 'locked', 'controls', 'log', 'loot', 'lore'].forEach(n => { $('p-' + n).hidden = n !== name; });
+}
+$('p-seals').addEventListener('click', async e => {
+  const b = e.target.closest('[data-s],[data-act]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  if (b.dataset.act) { onAct(b.dataset.act); return; }
+  const row = b.closest('.seal-row'), id = row && row.dataset.id, act = b.dataset.s, cur = curOf();
+  const x = state.seals.seals.find(s => s.id === id);
+  if (act === 'add') { row.classList.toggle('adding'); const i = row.querySelector('[data-s-amt]'); if (i) i.focus(); return; }
+  if (act === 'paid') { const r = await send({ action: 'seal_paid', id }, 'Paying the seal…'); if (r) r.broken ? splash('Seal Broken', 'var(--good)', [r.name + ' is paid off', 'One less bolt on the gate']) : toast(r.message); }
+  if (act === 'unpaid') { const r = await send({ action: 'seal_unpaid', id }, 'Undoing…'); if (r) toast(r.message); }
+  if (act === 'target') { const r = await send({ action: 'seal_target', id }, 'Aiming…'); if (r) toast(r.message); }
+  if (act === 'undo') { const r = await send({ action: 'seal_undo', payment: b.dataset.p }, 'Removing…'); if (r) toast(r.message); }
+  if (act === 'addgo') {
+    const amt = parseAmount(row.querySelector('[data-s-amt]').value);
+    if (!(amt > 0)) { toast('Enter the extra amount', true); return; }
+    const r = await send({ action: 'seal_add', id, amount: amt }, 'Charging the seal…');
+    if (r) r.broken ? splash('Seal Broken', 'var(--good)', [r.name + ' is paid off', 'One less bolt on the gate']) : splash('Seal Cracking', 'var(--hud)', ['+' + money(r.amount, cur) + ' on ' + r.name, 'The ring glows brighter']);
+  }
+});
 
 // ---------- render: back ----------
 const stat = (k, v, cls, wide) => '<div class="stat' + (wide ? ' wide' : '') + '"><div class="k">' + esc(k) + '</div><div class="v ' + (cls || '') + '">' + v + '</div></div>';
@@ -724,7 +908,7 @@ function renderBack() {
   $('bTitle').textContent = v ? v.name : 'The Vault';
   $('bSub').textContent = v ? (v.goal + ' · ' + v.form.name + ' · Tier ' + v.tier + '/' + v.form_count) : 'No active campaign';
   renderTelemetry(v); renderControls(v); renderLog(); renderLoot(); renderLore(v);
-  renderWatchPanel(); renderLocker();
+  renderWatchPanel(); renderLocker(); renderSealsPanel();
 }
 function renderTelemetry(v) {
   const el = $('p-telemetry');
@@ -997,7 +1181,6 @@ function renderWatchFront() {
   const w = state && state.watch;
   box.hidden = !w;
   if (!w) return;
-  box.classList.toggle('folded', !!w.today_status);
   const logs = logsOf(w);
   $('watchStreak').textContent = logs ? '🔥 ' + logsTxt(logs) : '';
   const wx = w.fire && w.fire.weather;
@@ -1008,21 +1191,16 @@ function renderWatchFront() {
   $('watchStage').textContent = FIRE_STAGES[st].name + (nx ? ' · ' + (nx.at - logs) + ' to ' + nx.name.toLowerCase() : '');
   $('embers').innerHTML = w.days.map(d => '<span class="em' + (d.status === 'held' ? ' lit' : d.status === 'spent' ? ' spent' : '') + (d.day === w.today ? ' today' : '') + '" title="' + DAYS[dowOf(d.day)] + '">' + FLAME + '</span>').join('');
   // The check-in itself is on the journal page (Roy, 11 Oct 2026: "remove the
-  // button on the vault quest card"); the card only shows tonight's answer.
-  let q, html;
-  if (w.today_status === 'held') {
-    q = 'Line held tonight. The guards add ' + (w.fire && w.fire.today > 1 ? w.fire.today + ' logs' : 'a log') + ' to the fire.';
-    html = '<div class="watch-done"><span>✓ Held the line</span></div>';
-  } else if (w.today_status === 'spent') {
-    q = 'Logged. Tomorrow is a new watch. The Vault is untouched.';
-    html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + (w.fire && w.fire.today < 0 ? ' · −' + logsTxt(-w.fire.today) : '') + '</span></div>';
-  } else {
-    q = '';
-    const wi = WX[wx && wx.key] || WX.clear;
-    wxLine = wx ? wx.name + '. ' + wx.line : '';
-    html = '<div class="wbar"><button class="wx-ic ' + (wi.cls || '') + '" type="button" data-w="wxinfo" aria-label="Tonight\'s weather">' + wi.ic + '</button>' +
-      '<a class="btn ghost small wjournal" href="' + JOURNAL_URL + '" target="_blank" rel="noopener" aria-label="Check in on your journal">🔥 ' + logs + '</a></div>';
-  }
+  // button on the vault quest card"). The front has no numbers (Roy, 13 Oct:
+  // "don't show percentages or numbers on the front of the card"): tonight's
+  // weather and this week's nights, each lit once held or red once spent; the
+  // row opens the journal.
+  const q = '';
+  const wi = WX[wx && wx.key] || WX.clear;
+  wxLine = wx ? wx.name + '. ' + wx.line : '';
+  const nightsRow = w.days.map(d => '<span class="wk"><span class="em' + (d.status === 'held' ? ' lit' : d.status === 'spent' ? ' spent' : '') + (d.day === w.today ? ' today' : '') + '">' + FLAME + '</span><small>' + DAYS[dowOf(d.day)][0] + '</small></span>').join('');
+  const html = '<div class="wbar"><button class="wx-ic ' + (wi.cls || '') + '" type="button" data-w="wxinfo" aria-label="Tonight\'s weather">' + wi.ic + '</button>' +
+    '<a class="wgo" href="' + JOURNAL_URL + '" target="_blank" rel="noopener" aria-label="This week\'s nights. Check in on your journal">' + nightsRow + '</a></div>';
   $('watchQ').textContent = q;
   if (html === watchHtml) return;
   watchHtml = html;
@@ -1060,15 +1238,22 @@ function renderWatchPanel() {
     '<div class="sec">This month</div><div class="grid">' +
       stat('Held nights', w.month.held + ' / ' + w.month.answered) + stat('Spent', esc(money(w.month.spent, cur))) +
     '</div>' +
-    '<div class="sec">Watch relics</div><div class="relics">' + w.relics.map(r => '<div class="relic' + (r.earned ? ' on' : '') + '"><b>' + r.days + '</b>' + esc(r.name) + '</div>').join('') + '</div>' +
+    '<div class="sec">Fire relics</div><div class="relics">' + w.relics.map(r => '<div class="relic' + (r.earned ? ' on' : '') + '"><b>' + r.days + '</b>' + esc(r.name) + '</div>').join('') + '</div>' +
     '<div class="sec">Spending log</div>' + (w.spent_log.length ? '<ul class="log">' + w.spent_log.map(s => '<li><div><div class="t">' + esc(s.what) + '</div><div class="s">' + esc(shortDay(s.day)) + '</div></div><span class="amt" style="color:var(--bad)">' + esc(money(s.amount, cur)) + '</span></li>').join('') + '</ul>' : '<div class="empty-note">Nothing logged. Spent days land here, never as a breach.</div>');
 }
 function renderLocker() {
   const l = state && state.locker;
   document.querySelector('.tab[data-tab="locked"]').hidden = !l;
   if (!l) return;
-  const cur = curOf();
-  $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
+  const cur = curOf(), st = l.stash;
+  if (st) {
+    // The Stash (Roy, 13 Oct 2026): the real fun budget. A crate opens when its
+    // wait is over and the Stash covers it; held nights take days off the wait.
+    $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(Math.max(0, st.balance)) + '<div><div class="lbl">The Stash</div><div class="v">' + esc(money(st.balance, cur)) + '</div>' +
+      '<div class="hint">Your budget for fun things, the same as in real life. A buy from here is planned: it never burns the fire.</div></div></div>' +
+      '<form class="addform" id="stashForm" autocomplete="off" style="margin-top:10px"><input class="inp sm" id="stashNote" placeholder="Note (optional)" maxlength="60" /><input class="inp sm" id="stashAmt" type="text" inputmode="decimal" placeholder="€" required /><button class="btn good wide" type="submit">Into the Stash</button></form>' +
+      (st.log.length ? '<ul class="extras stash-log">' + st.log.map(r => '<li><span>' + (r.kind === 'buy' ? 'Bought ' + esc(r.note) : 'In' + (r.note ? ' · ' + esc(r.note) : '')) + ' · ' + esc(shortDay(r.day)) + '</span><span><b style="color:' + (r.amount < 0 ? 'var(--bad)' : 'var(--good)') + '">' + esc(money(r.amount, cur, true)) + '</b>' + (r.kind === 'in' ? ' <button class="linkbtn" type="button" data-l="unstash" data-id="' + esc(r.id) + '">Remove</button>' : '') + '</span></li>').join('') + '</ul>' : '') + '</div>';
+  } else $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
     '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' in the Vault' : '') + '. The pile grows with every one.</div></div></div>' +
     l.to_move.map(i => '<div style="margin-top:8px"><button class="btn good small wide" type="button" data-l="move" data-id="' + esc(i.id) + '">Move ' + esc(money(i.price, cur)) + ' into the Vault</button></div>').join('') + '</div>';
   $('lockerHead').textContent = 'In the locker · ' + (l.slots - l.free) + '/' + l.slots;
@@ -1079,7 +1264,9 @@ function renderLocker() {
     return '<div class="crate' + (i.open ? ' open' : '') + '" style="--cr:var(' + (RARITY_VAR[rar] || '--r-common') + ')">' +
       (i.open ? '' : '<button class="linkbtn letgo" type="button" data-l="release" data-id="' + esc(i.id) + '">Let go</button>') +
       crateSvg(i) + '<div class="cr">' + esc(rar) + (i.open ? ' · unlocked' : '') + '</div><div class="cn">' + esc(i.item) + '</div><div class="cp">' + esc(money(i.price, cur)) + '</div>' +
-      (i.open ? '<div class="cd">The lock opened after ' + i.lock_days + ' days. Still want it?</div><div class="acts"><button class="btn ghost small" type="button" data-l="keep" data-id="' + esc(i.id) + '">Still want it</button><button class="btn good small" type="button" data-l="release" data-id="' + esc(i.id) + '">Let it go</button></div>'
+      (st ? (i.open ? '<div class="cd">The wait is over and the Stash covers it. Still want it?</div><div class="acts"><button class="btn good small" type="button" data-l="keep" data-id="' + esc(i.id) + '">Buy it</button><button class="btn ghost small" type="button" data-l="release" data-id="' + esc(i.id) + '">Let it go</button></div>'
+          : '<div class="cd">' + (i.days_left ? '<b>' + i.days_left + '</b> day' + (i.days_left === 1 ? '' : 's') + ' left' : 'Wait is over') + (i.short ? ' · <b>' + esc(money(i.short, cur)) + '</b> short' : '') + (i.warmed ? '<br>🔥 ' + i.warmed + ' day' + (i.warmed === 1 ? '' : 's') + ' off by holding the line' : '') + '</div>')
+      : i.open ? '<div class="cd">The lock opened after ' + i.lock_days + ' days. Still want it?</div><div class="acts"><button class="btn ghost small" type="button" data-l="keep" data-id="' + esc(i.id) + '">Still want it</button><button class="btn good small" type="button" data-l="release" data-id="' + esc(i.id) + '">Let it go</button></div>'
         : '<div class="cd"><b>' + i.days_left + '</b> day' + (i.days_left === 1 ? '' : 's') + ' left</div>') + '</div>';
   });
   for (let k = l.locked.length; k < l.slots; k++) crates.push('<div class="crate empty"><i>▢</i>Empty slot</div>');
@@ -1094,14 +1281,24 @@ $('lockForm').addEventListener('submit', async e => {
   const r = await send({ action: 'loot_lock', item, price }, 'Locking…');
   if (r) { e.target.reset(); $('lockHint').textContent = '1 day per €10 · at least 2, at most 30 days'; toast(r.message); }
 });
+$('p-locked').addEventListener('submit', async e => {
+  if (e.target.id !== 'stashForm') return;
+  e.preventDefault(); e.stopPropagation();
+  const amount = parseAmount($('stashAmt').value);
+  if (!(amount > 0)) { toast('Enter the amount', true); return; }
+  const r = await send({ action: 'stash_in', amount, note: $('stashNote').value.trim() }, 'Into the Stash…');
+  if (r) toast('+' + money(r.amount, curOf()) + ' in the Stash');
+});
 $('p-locked').addEventListener('click', async e => {
   const b = e.target.closest('[data-l]'); if (!b) return;
   e.preventDefault(); e.stopPropagation();
   const id = b.dataset.id, act = b.dataset.l, cur = curOf();
-  if (act === 'keep') { const r = await send({ action: 'loot_keep', id }, 'Logging…'); if (r) toast(r.message); }
+  const stashed = !!(state.locker && state.locker.stash);
+  if (act === 'keep') { const r = await send({ action: 'loot_keep', id }, stashed ? 'Buying…' : 'Logging…'); if (r) stashed ? splash('Loot Claimed', 'var(--hud)', [r.item, money(r.price, cur) + ' from the Stash'], 'A planned buy. The fire is untouched.') : toast(r.message); }
+  if (act === 'unstash') { const r = await send({ action: 'stash_undo', id }, 'Removing…'); if (r) toast(r.message); }
   if (act === 'release') {
     const r = await send({ action: 'loot_release', id }, 'Letting go…');
-    if (r) splash('Kept From The Gate', 'var(--good)', ['+' + money(r.price, cur) + ' not spent', r.item], 'Move it into the Vault from the Locked tab');
+    if (r) stashed ? toast('Let go. ' + r.item + ' is off the list.') : splash('Kept From The Gate', 'var(--good)', ['+' + money(r.price, cur) + ' not spent', r.item], 'Move it into the Vault from the Locked tab');
   }
   if (act === 'move') {
     const r = await send({ action: 'loot_move', id }, 'Charging core…');
@@ -1120,7 +1317,7 @@ function setFlipped(f) {
 cardEl.addEventListener('click', e => {
   if (busy) return;
   const flipped = cardEl.classList.contains('is-flipped');
-  if (e.target.closest('button, input, select, a, form, .ticker, .watch')) return;
+  if (e.target.closest('button, input, select, a, form, .ticker, .watch, .seal-g')) return;
   if (flipped && !e.target.closest('.b-head, .hazard')) return; // on the back only the header flips back
   if (!state || !state.vault) { if (!flipped) return; }
   setFlipped(!flipped);
@@ -1129,8 +1326,7 @@ cardEl.addEventListener('keydown', e => { if (e.target === cardEl && (e.key === 
 $('tabs').addEventListener('click', e => {
   const t = e.target.closest('.tab'); if (!t) return;
   e.stopPropagation();
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
-  ['telemetry', 'watch', 'locked', 'controls', 'log', 'loot', 'lore'].forEach(n => { $('p-' + n).hidden = n !== t.dataset.tab; });
+  selectTab(t.dataset.tab);
 });
 
 // ---------- actions ----------
