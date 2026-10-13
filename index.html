@@ -67,6 +67,12 @@ button,input,select{font:inherit;color:inherit}
 .ticker .tx{display:inline-block;max-width:100%;padding:6px 10px;border-left:3px solid var(--hud);background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);font:600 11.5px/1.35 var(--mono);color:#ffe7b0;opacity:0;transform:translateY(-4px);transition:opacity .6s,transform .6s}
 .ticker .tx.on{opacity:1;transform:none}
 .ticker .who{color:var(--hud);font-weight:700;letter-spacing:.08em}
+.front.sealed .watch,.front.sealed .rarity{display:none!important}
+.front.sealed .hud-bottom .ticker{margin:0;min-height:64px;display:flex;align-items:flex-end}
+.front.sealed .hud-bottom .ticker .tx{display:block;width:100%;padding:10px 12px;border:2px solid #000;border-left:4px solid var(--hud);border-radius:6px;background:rgba(10,6,4,.72);box-shadow:3px 3px 0 #000;font-size:13px;line-height:1.4}
+.front.sealed[data-head="quiet"] .tier-name{display:none}
+.front.sealed[data-head="quiet"] .tier-num{display:inline-block;margin:0;padding:5px 9px;border:2px solid #000;border-radius:5px;background:rgba(10,6,4,.6);font-size:11px;letter-spacing:.2em;color:#ffe7b0}
+.front.sealed[data-head="gate"] .tier-num,.front.sealed[data-head="goal"] .tier-num{letter-spacing:.2em;font-size:12px;color:#ffe7b0;text-transform:uppercase}
 
 .hud-bottom{position:absolute;left:14px;right:14px;bottom:16px;z-index:6;pointer-events:none}
 .core-head{display:flex;justify-content:space-between;align-items:baseline}
@@ -222,6 +228,11 @@ select.inp{font-size:13px}
 .seal-row .extras{margin:6px 0 0;padding:0;list-style:none;font-size:11px;color:var(--dim)}
 .seal-row .extras li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
 .seal-row.broken .nm{color:var(--good)}
+.loot-card.find{align-items:center}
+.loot-card.find .fa{margin-left:auto;font:700 15px/1 var(--mono);color:var(--lc);white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 #000}
+.loot-card.mystery{--lc:var(--dim);border-style:dashed;border-left-style:solid}
+.loot-card.mystery .fa{font-size:20px}
+.more-finds summary{margin-top:8px;cursor:pointer;font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-decoration:underline}
 .stash-log{margin:8px 0 0;padding:0;list-style:none;font-size:11px;color:var(--dim)}
 .stash-log li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 0}
 .seal-sum{margin-top:6px;padding-top:12px;border-top:2px solid rgba(255,197,61,.4);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:700 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#ffe7b0}
@@ -514,6 +525,7 @@ const STATE_URL = ENGINE_URL + '/vault';
 const FALLBACK_ACTION_URL = ENGINE_URL + '/vault/action';
 const PASSCODE_KEY = 'vault-passcode';
 const SEEN_KEY = 'vault-seen-events';
+const FIND_KEY = 'vault-seen-find';
 const TZ = 'Europe/Amsterdam';
 const ROLLOVER = 4;
 const DAY_MS = 86400000;
@@ -750,6 +762,17 @@ function renderFront() {
   front.classList.toggle('sealed', !!seals);
   front.classList.toggle('breached', sh.breached && !seals);
   front.classList.toggle('funded', !!v.funded);
+  // The seals' front (Roy, 13 Oct 2026): WARDEN speaks at the bottom, where
+  // the week's flames were; the header names the gate, not the tier.
+  (seals ? $('hudBottom') : document.querySelector('.hud-top')).appendChild($('ticker'));
+  if (seals) {
+    const head = window.__header || HEADER;
+    front.dataset.head = head;
+    const gate = WORLDS[v.tier] || v.form.name, nth = ORDINALS[v.tier] || '';
+    if (head === 'goal') { $('tierName').textContent = v.name; $('tierNum').textContent = 'Sealed until your fortieth'; }
+    else if (head === 'quiet') { $('tierNum').textContent = 'Ashveil · ' + gate.replace(/^The /, ''); }
+    else { $('tierName').textContent = gate; $('tierNum').textContent = 'Ashveil · ' + (nth ? nth + ' gate' : 'the gate'); }
+  } else delete front.dataset.head;
   setMedia(v.form);
   renderSealsFront(seals);
   runTicker(seals ? sealTransmissions(seals, now) : transmissions(v, sh, now));
@@ -762,6 +785,11 @@ function renderFront() {
 // the front"). Drawn over the photo in its own 1000 × 1500 frame: the door's
 // centre and radius (GATE) set where the seals and their bolts sit. Tier 1's
 // door; a new visual is made with the seals in the same place.
+// The header over the seals: 'gate' (the gate's name), 'goal' (the vault's
+// name) or 'quiet' (one small line).
+const HEADER = 'gate';
+const WORLDS = ['', 'The Canyon Gate'];
+const ORDINALS = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth'];
 const GATE = { cx: 497, cy: 789, r: 297, seal: 53, at: 0.479 };
 const SEAL_POS = [[-1, -1], [1, -1], [1, 1], [-1, 1]]; // slot 0 top left, then clockwise
 const EMBLEMS = [
@@ -831,6 +859,15 @@ function sealTransmissions(sl, now) {
   const r = rng('warden:' + gameDay(now));
   const out = [], open = sl.seals.filter(x => !x.broken), broken = sl.seals.filter(x => x.broken);
   const target = open.find(x => x.target), due = open.filter(x => !x.paid_this_month);
+  // The fire and the Stash first: the bottom line is the only news on the front.
+  const w = state.watch, st = state.locker && state.locker.stash, find = st && (st.finds || [])[0];
+  const article = f => (/^[AEIOU]/.test(f.rarity) ? 'an ' : 'a ') + f.rarity.toLowerCase() + ' ' + f.name.toLowerCase().replace("warden's", "Warden's").replace('ashveil', 'Ashveil');
+  if (w && !w.today_status) out.push(pickR(r, ['Something glints in the sand tonight. Hold the line and it is yours.', 'Tonight: ' + w.fire.weather.name.toLowerCase() + '. Hold the line and see what the sand gives up.', 'The fire is waiting for your answer. So is whatever is buried out there.']));
+  else if (w && w.today_status === 'spent') out.push(pickR(r, ['You spent tonight. The sand kept its secrets.', 'A spend tonight. The fire took the hit. Tomorrow is a new dig.']));
+  if (find && find.day === (w && w.today)) out.push('Tonight you dug up ' + article(find) + '. Straight into the Stash.');
+  else if (find) out.push('Last find: ' + article(find) + '. It is in the Stash.');
+  const ready = state.locker && (state.locker.locked || []).find(i => i.open);
+  if (ready) out.push('The ' + ready.item + ' crate is unlocked and the Stash covers it. Your call.');
   if (!open.length) out.push('Every seal is broken. The gate is yours. I will miss the bolts.');
   else {
     if (broken.length) out.push('The ' + broken[broken.length - 1].name + ' seal is broken. ' + WORDS[open.length] + ' still hold the gate.');
@@ -1241,6 +1278,19 @@ function renderWatchPanel() {
     '<div class="sec">Fire relics</div><div class="relics">' + w.relics.map(r => '<div class="relic' + (r.earned ? ' on' : '') + '"><b>' + r.days + '</b>' + esc(r.name) + '</div>').join('') + '</div>' +
     '<div class="sec">Spending log</div>' + (w.spent_log.length ? '<ul class="log">' + w.spent_log.map(s => '<li><div><div class="t">' + esc(s.what) + '</div><div class="s">' + esc(shortDay(s.day)) + '</div></div><span class="amt" style="color:var(--bad)">' + esc(money(s.amount, cur)) + '</span></li>').join('') + '</ul>' : '<div class="empty-note">Nothing logged. Spent days land here, never as a breach.</div>');
 }
+// Stash finds (Roy, 13 Oct 2026: "holding the fire should be random amount to
+// stash, based on loot, events", "I need novelty and unpredictability"): each
+// held night drops a find with a rarity and an amount. The budget behind it
+// stays off the card.
+const findRow = f => '<div class="loot-card find" style="--lc:var(' + (RARITY_VAR[f.rarity] || '--r-common') + ')"><div style="min-width:0"><div class="n">' + esc(f.name) + '</div><div class="f">' + esc(f.rarity) + ' · ' + esc(shortDay(f.day)) + (f.boost ? ' · ' + esc(f.boost) : '') + '</div></div><div class="fa">' + (f.amount > 0 ? '+' + esc(money(f.amount, curOf())) : 'Stash full') + '</div></div>';
+function stashFindsHtml(st) {
+  const w = state.watch, finds = st.finds || [];
+  if (!finds.length && !w) return '';
+  const tonight = w && !w.today_status ? '<div class="loot-card find mystery"><div><div class="n">Tonight\'s find</div><div class="f">Hold the line to dig it up</div></div><div class="fa">?</div></div>' : '';
+  const more = finds.slice(4);
+  return '<div class="sec">Finds this month</div>' + tonight + (finds.length ? finds.slice(0, 4).map(findRow).join('') : '<div class="empty-note">Every held night drops a find into the Stash.</div>') +
+    (more.length ? '<details class="more-finds"><summary>' + more.length + ' earlier find' + (more.length === 1 ? '' : 's') + '</summary>' + more.map(findRow).join('') + '</details>' : '');
+}
 function renderLocker() {
   const l = state && state.locker;
   document.querySelector('.tab[data-tab="locked"]').hidden = !l;
@@ -1250,8 +1300,9 @@ function renderLocker() {
     // The Stash (Roy, 13 Oct 2026): the real fun budget. A crate opens when its
     // wait is over and the Stash covers it; held nights take days off the wait.
     $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(Math.max(0, st.balance)) + '<div><div class="lbl">The Stash</div><div class="v">' + esc(money(st.balance, cur)) + '</div>' +
-      '<div class="hint">Your budget for fun things, the same as in real life. A buy from here is planned: it never burns the fire.</div></div></div>' +
-      '<form class="addform" id="stashForm" autocomplete="off" style="margin-top:10px"><input class="inp sm" id="stashNote" placeholder="Note (optional)" maxlength="60" /><input class="inp sm" id="stashAmt" type="text" inputmode="decimal" placeholder="€" required /><button class="btn good wide" type="submit">Into the Stash</button></form>' +
+      '<div class="hint">Your fun money. Every held night drops a find in here; a buy from here is planned and never burns the fire.</div></div></div>' +
+      stashFindsHtml(st) +
+      '<div class="sec">Add money by hand</div><form class="addform" id="stashForm" autocomplete="off"><input class="inp sm" id="stashNote" placeholder="Note (optional)" maxlength="60" /><input class="inp sm" id="stashAmt" type="text" inputmode="decimal" placeholder="€" required /><button class="btn good wide" type="submit">Into the Stash</button></form>' +
       (st.log.length ? '<ul class="extras stash-log">' + st.log.map(r => '<li><span>' + (r.kind === 'buy' ? 'Bought ' + esc(r.note) : 'In' + (r.note ? ' · ' + esc(r.note) : '')) + ' · ' + esc(shortDay(r.day)) + '</span><span><b style="color:' + (r.amount < 0 ? 'var(--bad)' : 'var(--good)') + '">' + esc(money(r.amount, cur, true)) + '</b>' + (r.kind === 'in' ? ' <button class="linkbtn" type="button" data-l="unstash" data-id="' + esc(r.id) + '">Remove</button>' : '') + '</span></li>').join('') + '</ul>' : '') + '</div>';
   } else $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
     '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' in the Vault' : '') + '. The pile grows with every one.</div></div></div>' +
@@ -1413,6 +1464,13 @@ document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click
 // Monday news: show each Perfect Defense, tier-up and lost week once per device.
 function checkSplash() {
   if (!state || !state.vault || $('splash').classList.contains('on') || busy) return;
+  // A new Stash find shows once per device, the first look after holding.
+  const find = state.locker && state.locker.stash && (state.locker.stash.finds || [])[0];
+  if (find && (store.get(FIND_KEY) || '') < find.day) {
+    store.set(FIND_KEY, find.day);
+    splash(find.rarity + ' Find', 'var(' + (RARITY_VAR[find.rarity] || '--r-common') + ')', [find.name, find.amount > 0 ? '+' + money(find.amount, curOf()) + ' into the Stash' : 'The Stash is full this month'], find.boost || 'Held the line · ' + shortDay(find.day));
+    return;
+  }
   let seen = [];
   try { seen = JSON.parse(store.get(SEEN_KEY) || '[]'); } catch (e) {}
   const first = !store.get(SEEN_KEY);
