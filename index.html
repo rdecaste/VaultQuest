@@ -203,8 +203,8 @@ select.inp{font-size:13px}
 /* the front stays light: one row (weather icon, Held with the log count, Spent); the photo carries the camp */
 .watch .watch-head,.watch .watch-q,.watch #watchWx,.watch .watch-row{display:none!important}
 .watch.folded .watch-act{margin-top:4px}
-.wbar{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch}
-.wbar .wjournal{text-decoration:none}
+.wbar{display:grid;grid-template-columns:auto auto;justify-content:start;gap:8px;align-items:stretch}
+.wbar .wjournal{text-decoration:none;padding-inline:12px;font-size:13px}
 .wbar .btn{display:flex;align-items:center;justify-content:center;gap:10px}
 .wbar .wspent{padding-inline:16px}
 .wlogs{font-size:11px;letter-spacing:.02em;padding:2px 6px;border-radius:10px;background:rgba(0,0,0,.18);text-shadow:none}
@@ -1017,11 +1017,11 @@ function renderWatchFront() {
     q = 'Logged. Tomorrow is a new watch. The Vault is untouched.';
     html = '<div class="watch-done spent"><span>✕ Spent ' + esc(money(w.today_spent ? w.today_spent.amount : 0, curOf())) + (w.today_spent && w.today_spent.what ? ' · ' + esc(w.today_spent.what) : '') + (w.fire && w.fire.today < 0 ? ' · −' + logsTxt(-w.fire.today) : '') + '</span></div>';
   } else {
-    q = 'Check in on your journal tonight.';
+    q = '';
     const wi = WX[wx && wx.key] || WX.clear;
     wxLine = wx ? wx.name + '. ' + wx.line : '';
     html = '<div class="wbar"><button class="wx-ic ' + (wi.cls || '') + '" type="button" data-w="wxinfo" aria-label="Tonight\'s weather">' + wi.ic + '</button>' +
-      '<a class="btn ghost small wjournal" href="' + JOURNAL_URL + '" target="_blank" rel="noopener">Check in on your journal<span class="wlogs">🔥 ' + logs + '</span></a></div>';
+      '<a class="btn ghost small wjournal" href="' + JOURNAL_URL + '" target="_blank" rel="noopener" aria-label="Check in on your journal">🔥 ' + logs + '</a></div>';
   }
   $('watchQ').textContent = q;
   if (html === watchHtml) return;
