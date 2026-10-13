@@ -219,6 +219,8 @@ select.inp{font-size:13px}
 .seal-row .mini svg{width:46px;height:46px;display:block}
 .seal-row .nm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:700 14px/1.2 var(--mono);letter-spacing:.04em}
 .seal-row .amt{margin-top:4px;font-size:11.5px;line-height:1.4;color:var(--muted)}
+.seal-row .poff{margin-top:4px;font:600 11.5px/1.3 var(--mono);color:var(--muted)}
+.seal-row .poff b{color:var(--good);font-weight:700}
 .seal-row .sbar{margin-top:7px;height:6px;border:1.5px solid #000;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}
 .seal-row .sbar i{display:block;height:100%;background:linear-gradient(90deg,var(--hud-2),var(--hud))}
 .seal-row .sacts{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -229,6 +231,8 @@ select.inp{font-size:13px}
 .seal-row .extras li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
 .seal-row.broken .nm{color:var(--good)}
 .loot-card.find{align-items:center}
+.loot-month{display:flex;justify-content:space-between;gap:8px;margin-top:16px}
+.loot-month span:last-child{color:var(--dim)}
 .loot-card.find .fa{margin-left:auto;font:700 15px/1 var(--mono);color:var(--lc);white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 #000}
 .loot-card.mystery{--lc:var(--dim);border-style:dashed;border-left-style:solid}
 .loot-card.mystery .fa{font-size:20px}
@@ -897,12 +901,14 @@ function renderSealsPanel() {
   const mini = x => '<svg viewBox="-70 -70 140 140">' + (x.broken ? '' : '') + '<circle r="53" fill="#1c130d" stroke="#000" stroke-width="3"/><circle r="53" fill="none" stroke="rgba(255,205,150,.25)" stroke-width="9"/>' +
     '<g fill="none" stroke="rgba(255,220,170,.8)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">' + EMBLEMS[x.slot % 4].replace(/class="fill"/g, 'fill="rgba(255,220,170,.8)" stroke="none"') + '</g>' +
     (x.broken ? '<path d="M-6 -53 L3 -22 L-9 -3 L6 15 L-3 53" stroke="#fff1c8" stroke-width="5" fill="none"/>' : '<circle r="53" fill="none" stroke="#ffb347" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + (333 * Math.max(0.02, x.progress)).toFixed(1) + ' 333" transform="rotate(-90)"/>') + '</svg>';
-  const months = Math.max(0, ...sl.seals.map(x => x.payments_left - (x.paid_this_month || x.broken ? 0 : 1)));
-  const free = sl.left > 0 ? monthLabel(addMonths(sl.month, months)) : '';
+  const offs = sl.seals.map(x => x.paid_off).filter(Boolean).sort();
+  const free = sl.left > 0 && offs.length ? monthLabel(offs[offs.length - 1]) : '';
+  const offLabel = mk => MONTH_NAMES[Number(mk.slice(5, 7)) - 1] + ' ' + mk.slice(0, 4);
   el.innerHTML = '<div class="hint" style="margin:0 0 6px">Each seal is one loan holding the gate shut. Tap <b>' + esc(mn) + ' paid</b> when its payment leaves your account. Extra payments go through Add more.</div>' +
     '<div class="seal-rows">' + sl.seals.map(x => '<div class="seal-row' + (x.broken ? ' broken' : '') + '" data-id="' + esc(x.id) + '"><div class="mini">' + mini(x) + '</div><div>' +
       '<div class="nm">' + esc(x.name) + (x.broken ? ' <span class="badge k">Broken</span>' : x.target ? ' <span class="badge o">Target</span>' : '') + '</div>' +
-      '<div class="amt">' + (x.broken ? 'Paid off. ' + esc(money(x.original, cur)) + ' in total.' : esc(money(x.left, cur)) + ' left of ' + esc(money(x.original, cur)) + ' · ' + esc(money(x.monthly, cur)) + ' a month · about ' + x.payments_left + ' payment' + (x.payments_left === 1 ? '' : 's')) + '</div>' +
+      '<div class="amt">' + (x.broken ? 'Paid off. ' + esc(money(x.original, cur)) + ' in total.' : esc(money(x.left, cur)) + ' left of ' + esc(money(x.original, cur)) + ' · ' + esc(money(x.monthly, cur)) + ' a month') + '</div>' +
+      (x.paid_off ? '<div class="poff">' + (x.broken ? 'Paid off in ' : 'Paid off ') + '<b>' + esc(offLabel(x.paid_off)) + '</b>' + (x.broken ? '' : ' · ' + x.payments_left + ' payment' + (x.payments_left === 1 ? '' : 's') + ' to go') + '</div>' : '') +
       '<div class="sbar"><i style="width:' + (x.progress * 100).toFixed(1) + '%"></i></div>' +
       (x.broken ? '' : '<div class="sacts">' + (x.paid_this_month ? '<span class="paid">✓ ' + esc(mn) + ' paid · ' + esc(shortDay(x.paid_this_month.day).split(' ').slice(1).join(' ')) + '</span><button class="linkbtn" type="button" data-s="unpaid">Undo</button>'
         : '<button class="btn good small" type="button" data-s="paid">' + esc(mn) + ' paid</button>') +
@@ -1029,6 +1035,20 @@ function renderLog() {
 const lootCard = l => '<div class="loot-card" style="--lc:var(' + (RARITY_VAR[l.rarity] || '--r-common') + ')"><div><div class="n">' + esc(l.name) + '</div><div class="f">' + esc(l.rarity) + ' · ' + esc(l.flavor || '') + '</div></div>' + (l.week ? '<div class="w">wk ' + esc(l.week.slice(5)) + '</div>' : '') + '</div>';
 function renderLoot() {
   const el = $('p-loot');
+  // With the Stash, the loot is the fire's finds (Roy, 13 Oct 2026: "the fire
+  // feeds into the stash by finding 'loot' so loot tab is like the log tab").
+  const st = state && state.locker && state.locker.stash;
+  document.querySelector('.tab[data-tab="loot"] small').textContent = st ? 'every find' : 'rewards';
+  if (st) {
+    const finds = st.finds || [], months = [];
+    for (const f of finds) { const m = f.day.slice(0, 7); let g = months.find(x => x.m === m); if (!g) months.push(g = { m, list: [] }); g.list.push(f); }
+    const best = finds.slice().sort((a, b) => FIND_RANK.indexOf(b.rarity) - FIND_RANK.indexOf(a.rarity) || b.amount - a.amount)[0];
+    el.innerHTML = '<div class="hint" style="margin:0 0 6px">Every held night the fire digs something up. Its worth goes straight into the Stash.</div>' +
+      (best ? '<div class="sec">Best find so far</div>' + findRow(best) : '') +
+      (months.length ? months.map(g => '<div class="sec loot-month"><span>' + esc(MONTH_NAMES[Number(g.m.slice(5, 7)) - 1] + ' ' + g.m.slice(0, 4)) + '</span><span>' + g.list.length + ' find' + (g.list.length === 1 ? '' : 's') + ' · ' + esc(money(g.list.reduce((a, f) => a + f.amount, 0), curOf())) + '</span></div>' + g.list.map(findRow).join('')).join('')
+        : '<div class="empty-note">No finds yet. Hold the line tonight.</div>');
+    return;
+  }
   const loot = (state && state.loot) || [];
   const arch = (state && state.archive) || [];
   let html = '<div class="sec">Weekly drops</div>' + (loot.length ? loot.map(lootCard).join('') : '<div class="empty-note">Every Perfect Defense drops a piece of loot on Monday. None yet.</div>');
@@ -1282,14 +1302,14 @@ function renderWatchPanel() {
 // stash, based on loot, events", "I need novelty and unpredictability"): each
 // held night drops a find with a rarity and an amount. The budget behind it
 // stays off the card.
+const FIND_RANK = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
 const findRow = f => '<div class="loot-card find" style="--lc:var(' + (RARITY_VAR[f.rarity] || '--r-common') + ')"><div style="min-width:0"><div class="n">' + esc(f.name) + '</div><div class="f">' + esc(f.rarity) + ' · ' + esc(shortDay(f.day)) + (f.boost ? ' · ' + esc(f.boost) : '') + '</div></div><div class="fa">' + (f.amount > 0 ? '+' + esc(money(f.amount, curOf())) : 'Stash full') + '</div></div>';
 function stashFindsHtml(st) {
   const w = state.watch, finds = st.finds || [];
   if (!finds.length && !w) return '';
   const tonight = w && !w.today_status ? '<div class="loot-card find mystery"><div><div class="n">Tonight\'s find</div><div class="f">Hold the line to dig it up</div></div><div class="fa">?</div></div>' : '';
-  const more = finds.slice(4);
-  return '<div class="sec">Finds this month</div>' + tonight + (finds.length ? finds.slice(0, 4).map(findRow).join('') : '<div class="empty-note">Every held night drops a find into the Stash.</div>') +
-    (more.length ? '<details class="more-finds"><summary>' + more.length + ' earlier find' + (more.length === 1 ? '' : 's') + '</summary>' + more.map(findRow).join('') + '</details>' : '');
+  return '<div class="sec">Latest finds</div>' + tonight + (finds.length ? finds.slice(0, 3).map(findRow).join('') : '<div class="empty-note">Every held night drops a find into the Stash.</div>') +
+    (finds.length > 3 ? '<button class="linkbtn more-finds" type="button" data-l="lootlog">Every find in the Loot tab ›</button>' : '');
 }
 function renderLocker() {
   const l = state && state.locker;
@@ -1302,7 +1322,7 @@ function renderLocker() {
     $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(Math.max(0, st.balance)) + '<div><div class="lbl">The Stash</div><div class="v">' + esc(money(st.balance, cur)) + '</div>' +
       '<div class="hint">Your fun money. Every held night drops a find in here; a buy from here is planned and never burns the fire.</div></div></div>' +
       stashFindsHtml(st) +
-      '<div class="sec">Add money by hand</div><form class="addform" id="stashForm" autocomplete="off"><input class="inp sm" id="stashNote" placeholder="Note (optional)" maxlength="60" /><input class="inp sm" id="stashAmt" type="text" inputmode="decimal" placeholder="€" required /><button class="btn good wide" type="submit">Into the Stash</button></form>' +
+      (st.log.length ? '<div class="sec">Stash log</div>' : '') +
       (st.log.length ? '<ul class="extras stash-log">' + st.log.map(r => '<li><span>' + (r.kind === 'buy' ? 'Bought ' + esc(r.note) : 'In' + (r.note ? ' · ' + esc(r.note) : '')) + ' · ' + esc(shortDay(r.day)) + '</span><span><b style="color:' + (r.amount < 0 ? 'var(--bad)' : 'var(--good)') + '">' + esc(money(r.amount, cur, true)) + '</b>' + (r.kind === 'in' ? ' <button class="linkbtn" type="button" data-l="unstash" data-id="' + esc(r.id) + '">Remove</button>' : '') + '</span></li>').join('') + '</ul>' : '') + '</div>';
   } else $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
     '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' in the Vault' : '') + '. The pile grows with every one.</div></div></div>' +
@@ -1332,20 +1352,13 @@ $('lockForm').addEventListener('submit', async e => {
   const r = await send({ action: 'loot_lock', item, price }, 'Locking…');
   if (r) { e.target.reset(); $('lockHint').textContent = '1 day per €10 · at least 2, at most 30 days'; toast(r.message); }
 });
-$('p-locked').addEventListener('submit', async e => {
-  if (e.target.id !== 'stashForm') return;
-  e.preventDefault(); e.stopPropagation();
-  const amount = parseAmount($('stashAmt').value);
-  if (!(amount > 0)) { toast('Enter the amount', true); return; }
-  const r = await send({ action: 'stash_in', amount, note: $('stashNote').value.trim() }, 'Into the Stash…');
-  if (r) toast('+' + money(r.amount, curOf()) + ' in the Stash');
-});
 $('p-locked').addEventListener('click', async e => {
   const b = e.target.closest('[data-l]'); if (!b) return;
   e.preventDefault(); e.stopPropagation();
   const id = b.dataset.id, act = b.dataset.l, cur = curOf();
   const stashed = !!(state.locker && state.locker.stash);
   if (act === 'keep') { const r = await send({ action: 'loot_keep', id }, stashed ? 'Buying…' : 'Logging…'); if (r) stashed ? splash('Loot Claimed', 'var(--hud)', [r.item, money(r.price, cur) + ' from the Stash'], 'A planned buy. The fire is untouched.') : toast(r.message); }
+  if (act === 'lootlog') { selectTab('loot'); return; }
   if (act === 'unstash') { const r = await send({ action: 'stash_undo', id }, 'Removing…'); if (r) toast(r.message); }
   if (act === 'release') {
     const r = await send({ action: 'loot_release', id }, 'Letting go…');
