@@ -1304,13 +1304,6 @@ function renderWatchPanel() {
 // stays off the card.
 const FIND_RANK = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
 const findRow = f => '<div class="loot-card find" style="--lc:var(' + (RARITY_VAR[f.rarity] || '--r-common') + ')"><div style="min-width:0"><div class="n">' + esc(f.name) + '</div><div class="f">' + esc(f.rarity) + ' · ' + esc(shortDay(f.day)) + (f.boost ? ' · ' + esc(f.boost) : '') + '</div></div><div class="fa">' + (f.amount > 0 ? '+' + esc(money(f.amount, curOf())) : 'Stash full') + '</div></div>';
-function stashFindsHtml(st) {
-  const w = state.watch, finds = st.finds || [];
-  if (!finds.length && !w) return '';
-  const tonight = w && !w.today_status ? '<div class="loot-card find mystery"><div><div class="n">Tonight\'s find</div><div class="f">Hold the line to dig it up</div></div><div class="fa">?</div></div>' : '';
-  return '<div class="sec">Latest finds</div>' + tonight + (finds.length ? finds.slice(0, 3).map(findRow).join('') : '<div class="empty-note">Every held night drops a find into the Stash.</div>') +
-    (finds.length > 3 ? '<button class="linkbtn more-finds" type="button" data-l="lootlog">Every find in the Loot tab ›</button>' : '');
-}
 function renderLocker() {
   const l = state && state.locker;
   document.querySelector('.tab[data-tab="locked"]').hidden = !l;
@@ -1321,9 +1314,7 @@ function renderLocker() {
     // wait is over and the Stash covers it; held nights take days off the wait.
     $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(Math.max(0, st.balance)) + '<div><div class="lbl">The Stash</div><div class="v">' + esc(money(st.balance, cur)) + '</div>' +
       '<div class="hint">Your fun money. Every held night drops a find in here; a buy from here is planned and never burns the fire.</div></div></div>' +
-      stashFindsHtml(st) +
-      (st.log.length ? '<div class="sec">Stash log</div>' : '') +
-      (st.log.length ? '<ul class="extras stash-log">' + st.log.map(r => '<li><span>' + (r.kind === 'buy' ? 'Bought ' + esc(r.note) : 'In' + (r.note ? ' · ' + esc(r.note) : '')) + ' · ' + esc(shortDay(r.day)) + '</span><span><b style="color:' + (r.amount < 0 ? 'var(--bad)' : 'var(--good)') + '">' + esc(money(r.amount, cur, true)) + '</b>' + (r.kind === 'in' ? ' <button class="linkbtn" type="button" data-l="unstash" data-id="' + esc(r.id) + '">Remove</button>' : '') + '</span></li>').join('') + '</ul>' : '') + '</div>';
+      '</div>';
   } else $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
     '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' in the Vault' : '') + '. The pile grows with every one.</div></div></div>' +
     l.to_move.map(i => '<div style="margin-top:8px"><button class="btn good small wide" type="button" data-l="move" data-id="' + esc(i.id) + '">Move ' + esc(money(i.price, cur)) + ' into the Vault</button></div>').join('') + '</div>';
@@ -1358,7 +1349,6 @@ $('p-locked').addEventListener('click', async e => {
   const id = b.dataset.id, act = b.dataset.l, cur = curOf();
   const stashed = !!(state.locker && state.locker.stash);
   if (act === 'keep') { const r = await send({ action: 'loot_keep', id }, stashed ? 'Buying…' : 'Logging…'); if (r) stashed ? splash('Loot Claimed', 'var(--hud)', [r.item, money(r.price, cur) + ' from the Stash'], 'A planned buy. The fire is untouched.') : toast(r.message); }
-  if (act === 'lootlog') { selectTab('loot'); return; }
   if (act === 'unstash') { const r = await send({ action: 'stash_undo', id }, 'Removing…'); if (r) toast(r.message); }
   if (act === 'release') {
     const r = await send({ action: 'loot_release', id }, 'Letting go…');
