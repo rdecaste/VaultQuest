@@ -230,6 +230,22 @@ select.inp{font-size:13px}
 .seal-row .extras{margin:6px 0 0;padding:0;list-style:none;font-size:11px;color:var(--dim)}
 .seal-row .extras li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
 .seal-row.broken .nm{color:var(--good)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.cal b{font:700 9px/1 var(--mono);color:var(--dim);text-align:center;padding-bottom:2px}
+.cal span{aspect-ratio:1;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;background:rgba(0,0,0,.3);font:700 11px/1 var(--mono);color:var(--dim)}
+.cal span.held{background:rgba(255,122,26,.22);border-color:rgba(255,122,26,.6);font-size:14px}
+.cal span.spent{background:rgba(255,77,77,.18);border-color:rgba(255,77,77,.55);color:var(--bad);font-size:14px}
+.cal span.missed{opacity:.5}
+.cal span.today{border:2px dashed var(--hud);color:var(--hud);font-size:14px}
+.cal span.future{background:none;opacity:.45}
+.run-head{display:flex;justify-content:space-between;align-items:center}
+.pace{padding:3px 7px;border:1.5px solid #000;border-radius:4px;font-size:9px;letter-spacing:.12em;color:#000}
+.pace.on{background:var(--good)}.pace.behind{background:var(--hud-2)}.pace.over{background:var(--r-legendary)}
+.run-sum{display:flex;justify-content:space-around;gap:8px;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.3);font:600 11px/1.2 var(--mono);color:var(--muted)}
+.run-sum b{display:block;font-size:17px;color:#fff;text-align:center;margin-bottom:3px}
+.settle{margin:0 0 10px;padding:10px;border:2px solid #000;border-left:4px solid var(--good);border-radius:8px;background:rgba(78,227,138,.1);box-shadow:2px 2px 0 #000}
+.settle .t{font:700 13px/1.35 var(--mono)}
+.settle .btn{margin-top:8px}
 .loot-card.find{align-items:center}
 .loot-card.find .fa{text-align:right}
 .loot-card .bal{margin-top:4px;font:600 10.5px/1 var(--mono);color:var(--dim);text-shadow:none}
@@ -909,7 +925,13 @@ function renderSealsPanel() {
   const offs = sl.seals.map(x => x.paid_off).filter(Boolean).sort();
   const free = sl.left > 0 && offs.length ? monthLabel(offs[offs.length - 1]) : '';
   const offLabel = mk => MONTH_NAMES[Number(mk.slice(5, 7)) - 1] + ' ' + mk.slice(0, 4);
-  el.innerHTML = '<div class="hint" style="margin:0 0 6px">Each seal is one loan holding the gate shut. Tap <b>' + esc(mn) + ' paid</b> when its payment leaves your account. Extra payments go through Add more.</div>' +
+  // Last month's run settled (Roy: "what is left goes into the vault"): the
+  // part of the budget the fire did not earn goes to the debt.
+  const due = (state.locker && state.locker.stash && state.locker.stash.to_vault) || [];
+  const tgt = sl.seals.find(x => x.target && !x.broken) || sl.seals.find(x => !x.broken);
+  const settle = due.map(d => '<div class="settle"><div class="t">' + esc(MONTH_NAMES[+d.month.slice(5, 7) - 1]) + '\'s run is over. The fire found ' + esc(money(d.found, cur)) + '; ' + esc(money(d.amount, cur)) + ' goes to the Vault.</div>' +
+    '<div class="hint" style="margin-top:4px">Transfer it to ' + esc(tgt ? tgt.name : 'a loan') + ' as an extra payment, then tap Moved.</div><button class="btn good small" type="button" data-s="settle" data-m="' + esc(d.month) + '">Moved to ' + esc(tgt ? tgt.name : 'the Vault') + '</button></div>').join('');
+  el.innerHTML = settle + '<div class="hint" style="margin:0 0 6px">Each seal is one loan holding the gate shut. Tap <b>' + esc(mn) + ' paid</b> when its payment leaves your account. Extra payments go through Add more.</div>' +
     '<div class="seal-rows">' + sl.seals.map(x => '<div class="seal-row' + (x.broken ? ' broken' : '') + '" data-id="' + esc(x.id) + '"><div class="mini">' + mini(x) + '</div><div>' +
       '<div class="nm">' + esc(x.name) + (x.broken ? ' <span class="badge k">Broken</span>' : x.target ? ' <span class="badge o">Target</span>' : '') + '</div>' +
       '<div class="amt">' + (x.broken ? 'Paid off. ' + esc(money(x.original, cur)) + ' in total.' : esc(money(x.left, cur)) + ' left of ' + esc(money(x.original, cur)) + ' · ' + esc(money(x.monthly, cur)) + ' a month') + '</div>' +
@@ -936,6 +958,7 @@ $('p-seals').addEventListener('click', async e => {
   if (b.dataset.act) { onAct(b.dataset.act); return; }
   const row = b.closest('.seal-row'), id = row && row.dataset.id, act = b.dataset.s, cur = curOf();
   const x = state.seals.seals.find(s => s.id === id);
+  if (act === 'settle') { const r = await send({ action: 'stash_settle', month: b.dataset.m }, 'Moving it to the Vault…'); if (r) splash('To the Vault', 'var(--hud)', ['+' + money(r.amount, cur) + ' on ' + (r.seals || []).join(', '), 'What the fire left in ' + monthLabel(r.month)]); return; }
   if (act === 'add') { row.classList.toggle('adding'); const i = row.querySelector('[data-s-amt]'); if (i) i.focus(); return; }
   if (act === 'paid') { const r = await send({ action: 'seal_paid', id }, 'Paying the seal…'); if (r) r.broken ? splash('Seal Broken', 'var(--good)', [r.name + ' is paid off', 'One less bolt on the gate']) : toast(r.message); }
   if (act === 'unpaid') { const r = await send({ action: 'seal_unpaid', id }, 'Undoing…'); if (r) toast(r.message); }
@@ -1112,8 +1135,8 @@ function curOf() { return (state && state.vault && state.vault.currency) || 'EUR
 // The guards' campfire grows with the watch streak: every held night adds a
 // log, and at 3, 7, 30 and 100 nights it turns into something bigger.
 const FIRE_STAGES = [
-  { at: 0, name: 'Cold ashes' }, { at: 1, name: 'Kindling' }, { at: 3, name: 'Campfire' },
-  { at: 7, name: 'Bonfire' }, { at: 30, name: 'Signal fire' }, { at: 100, name: 'Eternal flame' }
+  { at: 0, name: 'Cold ashes' }, { at: 1, name: 'Kindling' }, { at: 5, name: 'Campfire' },
+  { at: 15, name: 'Bonfire' }, { at: 30, name: 'Signal fire' }, { at: 50, name: 'Eternal flame' }
 ];
 function fireStage(n) { let i = 0; FIRE_STAGES.forEach((s, k) => { if (n >= s.at) i = k; }); return i; }
 const WX = {
@@ -1283,35 +1306,40 @@ $('watch').addEventListener('click', e => {
   e.stopPropagation();
   if (b.dataset.w === 'wxinfo') toast(wxLine || 'Clear night.');
 });
+// The Fire tab (Roy, 13 Oct 2026: "simplify the fire tab design"): this
+// month's run. The fire starts cold on the 1st; every held night adds heat
+// and digs up loot that grows with it.
 function renderWatchPanel() {
   const el = $('p-watch');
   const w = state && state.watch;
   document.querySelector('.tab[data-tab="watch"]').hidden = !w;
   if (!w) { el.innerHTML = ''; return; }
-  const cur = curOf();
-  const week = w.days.map(d => '<div class="wd ' + (d.status || '') + (d.day === w.today ? ' today' : '') + '"><b>' + DAYS[dowOf(d.day)] + '</b><span>' + (d.status === 'held' ? '🔥' : d.status === 'spent' ? '✕' : d.day < w.today ? '·' : d.day === w.today ? '?' : '') + '</span></div>').join('');
-  const left = Math.max(0, w.bonus_needed - w.held_week);
-  const logs = logsOf(w), st = fireStage(logs), nx = FIRE_STAGES[st + 1], cs = FIRE_STAGES[st];
-  const prog = nx ? (logs - cs.at) / (nx.at - cs.at) : 1;
-  const burned = w.fire && w.fire.today < 0 ? -w.fire.today : 0;
+  const cur = curOf(), logs = logsOf(w), st = fireStage(logs), cs = FIRE_STAGES[st];
+  const month = w.today.slice(0, 7), dim = new Date(Date.UTC(+month.slice(0, 4), +month.slice(5, 7), 0)).getUTCDate();
+  const run = Object.fromEntries(((w.fire && w.fire.run) || []).map(n => [n.day, n]));
+  const sm = state.locker && state.locker.stash && state.locker.stash.found_month;
+  let cal = '<div class="cal">' + DAYS.map(d => '<b>' + d.slice(0, 1) + '</b>').join('') + '<i style="grid-column:span ' + dowOf(month + '-01') + '"></i>';
+  for (let i = 1; i <= dim; i++) {
+    const day = month + '-' + String(i).padStart(2, '0'), n = run[day];
+    const cls = n ? n.status : day === w.today ? 'today' : day < w.today ? 'missed' : 'future';
+    cal += '<span class="' + cls + '" title="' + esc(shortDay(day)) + '">' + (n && n.status === 'held' ? '🔥' : n && n.status === 'spent' ? '✕' : day === w.today ? '?' : i) + '</span>';
+  }
+  cal += '</div>';
+  const mine = Object.values(run), held = mine.filter(n => n.status === 'held').length;
+  // Pace without the budget: holding 85% of the nights reaches the line by
+  // month end (Roy, 13 Oct 2026), and loot grows with heat, so pace is the
+  // share of nights held so far, not the money found so far.
+  const first = mine.length ? mine.map(n => n.day).sort()[0] : w.today;
+  const past = Math.round((Date.parse(w.today) - Date.parse(first)) / 864e5) + (run[w.today] ? 1 : 0);
+  const pace = sm && sm.line > 0 ? (sm.over ? ['over', 'Past the line: overflow loot'] : past < 1 ? null : held >= past * 0.85 ? ['on', 'On pace'] : ['behind', 'Behind pace']) : null;
+  const slips = w.spent_log.filter(x => x.day.slice(0, 7) === month);
   el.innerHTML =
-    '<div class="camp" style="--warm:' + (0.15 + 0.5 * Math.min(1, logs / 30)).toFixed(2) + '"><div class="camp-cap"><div class="camp-stage">' + esc(cs.name) + '</div><div class="camp-n">' + logs + '<small>LOGS</small></div></div>' + campfireSvg(logs, true, w.fire && w.fire.weather && w.fire.weather.key, w.today) +
-      '<div class="camp-next">' + (w.fire && w.fire.weather ? wxChip(w.fire.weather) : '') + '<div class="hint" style="margin:0 0 6px">' + (burned ? 'Tonight\'s spend burned ' + logsTxt(burned) + '. ' : '') + (nx ? (nx.at - logs) + ' more log' + (nx.at - logs === 1 ? '' : 's') + ' and it grows into a ' + esc(nx.name.toLowerCase()) + '.' : 'It never goes out now.') + '<br>A held night adds 1 log, sometimes more (✦ a lucky draw) · a spend burns 1 per €10 · no answer burns 1 · the weather changes each night. In a row: ' + nights(w.streak) + ', best ' + nights(w.best_streak) + '.</div>' +
-      '<div class="bonus"><i style="width:' + Math.round(prog * 100) + '%"></i></div>' +
-      '<div class="stages">' + FIRE_STAGES.slice(1).map((s, i) => '<span class="' + (st >= i + 1 ? 'on' : '') + '">' + s.at + '</span>').join('') + '</div></div></div>' +
-    (w.fire && w.fire.nights && w.fire.nights.length ? '<div class="sec">Last nights at the fire</div><ul class="nights">' + w.fire.nights.map(x => {
-      const wxd = WX[x.weather] || {};
-      return '<li><span class="nd">' + esc(shortDay(x.day).split(' ').slice(0, 2).join(' ')) + '</span><span>' + (wxd.ic || '') + ' ' + esc(x.status === 'held' ? 'Held' : x.status === 'spent' ? 'Spent' : 'No answer') + ' · <span style="color:var(--dim)">' + esc(wxd.name || x.weather) + '</span></span><span class="n ' + (x.delta > 0 ? 'up' : 'down') + '">' + (x.lucky ? '✦ ' : '') + (x.delta > 0 ? '+' : '−') + Math.abs(x.delta) + '</span></li>';
-    }).join('') + '</ul>' : '') +
-    '<div class="sec">This week</div><div class="week">' + week + '</div>' +
-    '<div class="stat wide" style="margin-top:6px"><div class="k">Loot bonus</div><div class="v">' + Math.min(w.held_week, w.bonus_needed) + ' / ' + w.bonus_needed + ' held days</div>' +
-      '<div class="bonus"><i style="width:' + Math.min(100, w.held_week / w.bonus_needed * 100) + '%"></i></div>' +
-      '<div class="hint">' + (w.bonus ? 'Bonus earned: Monday\'s loot goes up one rarity.' : left + ' more held day' + (left === 1 ? '' : 's') + ' and Monday\'s loot goes up one rarity.') + '</div></div>' +
-    '<div class="sec">This month</div><div class="grid">' +
-      stat('Held nights', w.month.held + ' / ' + w.month.answered) + stat('Spent', esc(money(w.month.spent, cur))) +
-    '</div>' +
-    '<div class="sec">Fire relics</div><div class="relics">' + w.relics.map(r => '<div class="relic' + (r.earned ? ' on' : '') + '"><b>' + r.days + '</b>' + esc(r.name) + '</div>').join('') + '</div>' +
-    '<div class="sec">Spending log</div>' + (w.spent_log.length ? '<ul class="log">' + w.spent_log.map(s => '<li><div><div class="t">' + esc(s.what) + '</div><div class="s">' + esc(shortDay(s.day)) + '</div></div><span class="amt" style="color:var(--bad)">' + esc(money(s.amount, cur)) + '</span></li>').join('') + '</ul>' : '<div class="empty-note">Nothing logged. Spent days land here, never as a breach.</div>');
+    '<div class="camp" style="--warm:' + (0.15 + 0.5 * Math.min(1, logs / 30)).toFixed(2) + '"><div class="camp-cap"><div class="camp-stage">' + esc(cs.name) + '</div><div class="camp-n">' + logs + '<small>HEAT</small></div></div>' + campfireSvg(logs, true, w.fire && w.fire.weather && w.fire.weather.key, w.today) +
+      '<div class="camp-next">' + (w.fire && w.fire.weather ? wxChip(w.fire.weather) : '') +
+      '<div class="hint" style="margin:0">Held night: more heat, and loot that grows with it. A spend or no answer cools the fire. It starts cold on the 1st.</div></div></div>' +
+    '<div class="sec run-head"><span>' + esc(MONTH_NAMES[+month.slice(5, 7) - 1]) + '\'s run</span>' + (pace ? '<span class="pace ' + pace[0] + '">' + pace[1] + '</span>' : '') + '</div>' + cal +
+    '<div class="run-sum"><span><b>' + held + '</b> held</span>' + (sm ? '<span><b>' + esc(money(sm.found, cur)) + '</b> loot</span>' : '') + '<span><b>' + slips.length + '</b> slip' + (slips.length === 1 ? '' : 's') + '</span></div>' +
+    (slips.length ? '<div class="sec">Slips</div><ul class="log">' + slips.map(x => '<li><div><div class="t">' + esc(x.what) + '</div><div class="s">' + esc(shortDay(x.day)) + '</div></div><span class="amt" style="color:var(--bad)">' + esc(money(x.amount, cur)) + '</span></li>').join('') + '</ul>' : '');
 }
 // Stash finds (Roy, 13 Oct 2026: "holding the fire should be random amount to
 // stash, based on loot, events", "I need novelty and unpredictability"): each
