@@ -231,6 +231,11 @@ select.inp{font-size:13px}
 .seal-row .extras li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
 .seal-row.broken .nm{color:var(--good)}
 .loot-card.find{align-items:center}
+.loot-card.find .fa{text-align:right}
+.loot-card .bal{margin-top:4px;font:600 10.5px/1 var(--mono);color:var(--dim);text-shadow:none}
+.loot-card .bal::before{content:"= "}
+.loot-card.spend{--lc:var(--bad)}
+.loot-card.spend .n{color:#fff}
 .loot-month{display:flex;justify-content:space-between;gap:8px;margin-top:16px}
 .loot-month span:last-child{color:var(--dim)}
 .loot-card.find .fa{margin-left:auto;font:700 15px/1 var(--mono);color:var(--lc);white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 #000}
@@ -449,7 +454,7 @@ select.inp{font-size:13px}
         <button class="tab on" data-tab="telemetry">Telemetry</button>
         <button class="tab" data-tab="seals" hidden>Seals<small>the debt</small></button>
         <button class="tab" data-tab="watch" hidden>Fire<small>patience</small></button>
-        <button class="tab" data-tab="locked" hidden>Stash<small>to spend</small></button>
+        <button class="tab" data-tab="locked" hidden>Locker<small>wish list</small></button>
         <button class="tab" data-tab="controls">Controls</button>
         <button class="tab" data-tab="log">Log</button>
         <button class="tab" data-tab="loot">Loot<small>rewards</small></button>
@@ -1038,15 +1043,25 @@ function renderLoot() {
   // With the Stash, the loot is the fire's finds (Roy, 13 Oct 2026: "the fire
   // feeds into the stash by finding 'loot' so loot tab is like the log tab").
   const st = state && state.locker && state.locker.stash;
-  document.querySelector('.tab[data-tab="loot"] small').textContent = st ? 'every find' : 'rewards';
+  document.querySelector('.tab[data-tab="loot"] small').textContent = st ? 'the stash' : 'rewards';
   if (st) {
-    const finds = st.finds || [], months = [];
-    for (const f of finds) { const m = f.day.slice(0, 7); let g = months.find(x => x.m === m); if (!g) months.push(g = { m, list: [] }); g.list.push(f); }
-    const best = finds.slice().sort((a, b) => FIND_RANK.indexOf(b.rarity) - FIND_RANK.indexOf(a.rarity) || b.amount - a.amount)[0];
-    el.innerHTML = '<div class="hint" style="margin:0 0 6px">Every held night the fire digs something up. Its worth goes straight into the Stash.</div>' +
-      (best ? '<div class="sec">Best find so far</div>' + findRow(best) : '') +
-      (months.length ? months.map(g => '<div class="sec loot-month"><span>' + esc(MONTH_NAMES[Number(g.m.slice(5, 7)) - 1] + ' ' + g.m.slice(0, 4)) + '</span><span>' + g.list.length + ' find' + (g.list.length === 1 ? '' : 's') + ' · ' + esc(money(g.list.reduce((a, f) => a + f.amount, 0), curOf())) + '</span></div>' + g.list.map(findRow).join('')).join('')
-        : '<div class="empty-note">No finds yet. Hold the line tonight.</div>');
+    // A ledger of the Stash: every find in, every buy out, with the balance
+    // after each (Roy: "in the loot show a running balance").
+    const rows = (st.finds || []).map(f => Object.assign({ find: true }, f))
+      .concat((st.log || []).map(r => ({ find: false, day: r.day, amount: r.amount, kind: r.kind, name: r.kind === 'buy' ? 'Bought ' + r.note : 'Into the Stash' + (r.note ? ' · ' + r.note : '') })))
+      .sort((a, b) => a.day.localeCompare(b.day) || (a.find === b.find ? 0 : a.find ? -1 : 1));
+    let run = 0;
+    for (const r of rows) { run = Math.round((run + r.amount) * 100) / 100; r.after = run; }
+    rows.reverse();
+    const months = [];
+    for (const r of rows) { const m = r.day.slice(0, 7); let g = months.find(x => x.m === m); if (!g) months.push(g = { m, list: [] }); g.list.push(r); }
+    const cur = curOf();
+    const row = r => r.find ? findRow(r, r.after)
+      : '<div class="loot-card find spend"><div style="min-width:0"><div class="n">' + esc(r.name) + '</div><div class="f">' + (r.kind === 'buy' ? 'From the locker' : 'By hand') + ' · ' + esc(shortDay(r.day)) + '</div></div><div class="fa">' + esc(money(r.amount, cur, true)) + '<div class="bal">' + esc(money(r.after, cur)) + '</div></div></div>';
+    el.innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(Math.max(0, st.balance)) + '<div><div class="lbl">The Stash</div><div class="v">' + esc(money(st.balance, cur)) + '</div>' +
+      '<div class="hint">Your fun money. Every held night the fire digs up loot; its worth lands in here. A buy from here is planned and never burns the fire.</div></div></div></div>' +
+      (months.length ? months.map(g => { const fs = g.list.filter(r => r.find); return '<div class="sec loot-month"><span>' + esc(MONTH_NAMES[Number(g.m.slice(5, 7)) - 1] + ' ' + g.m.slice(0, 4)) + '</span><span>' + fs.length + ' find' + (fs.length === 1 ? '' : 's') + ' · ' + esc(money(fs.reduce((a, f) => a + f.amount, 0), cur)) + '</span></div>' + g.list.map(row).join(''); }).join('')
+        : '<div class="empty-note">No loot yet. Hold the line tonight.</div>');
     return;
   }
   const loot = (state && state.loot) || [];
@@ -1303,18 +1318,18 @@ function renderWatchPanel() {
 // held night drops a find with a rarity and an amount. The budget behind it
 // stays off the card.
 const FIND_RANK = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
-const findRow = f => '<div class="loot-card find" style="--lc:var(' + (RARITY_VAR[f.rarity] || '--r-common') + ')"><div style="min-width:0"><div class="n">' + esc(f.name) + '</div><div class="f">' + esc(f.rarity) + ' · ' + esc(shortDay(f.day)) + (f.boost ? ' · ' + esc(f.boost) : '') + '</div></div><div class="fa">' + (f.amount > 0 ? '+' + esc(money(f.amount, curOf())) : 'Stash full') + '</div></div>';
+const findRow = (f, after) => '<div class="loot-card find" style="--lc:var(' + (RARITY_VAR[f.rarity] || '--r-common') + ')"><div style="min-width:0"><div class="n">' + esc(f.name) + '</div><div class="f">' + esc(f.rarity) + ' · ' + esc(shortDay(f.day)) + (f.boost ? ' · ' + esc(f.boost) : '') + '</div></div><div class="fa">' + (f.amount > 0 ? '+' + esc(money(f.amount, curOf())) : 'Stash full') + (after === undefined ? '' : '<div class="bal">' + esc(money(after, curOf())) + '</div>') + '</div></div>';
 function renderLocker() {
   const l = state && state.locker;
   document.querySelector('.tab[data-tab="locked"]').hidden = !l;
   if (!l) return;
   const cur = curOf(), st = l.stash;
   if (st) {
-    // The Stash (Roy, 13 Oct 2026): the real fun budget. A crate opens when its
-    // wait is over and the Stash covers it; held nights take days off the wait.
-    $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(Math.max(0, st.balance)) + '<div><div class="lbl">The Stash</div><div class="v">' + esc(money(st.balance, cur)) + '</div>' +
-      '<div class="hint">Your fun money. Every held night drops a find in here; a buy from here is planned and never burns the fire.</div></div></div>' +
-      '</div>';
+    // The locker with a Stash (Roy, 13 Oct 2026): a crate opens when its wait
+    // is over and the Stash covers it; held nights take days off the wait.
+    // The Stash itself lives in the Loot tab (Roy, 13 Oct 2026: "rename stash
+    // to locker and move this to 'loot'").
+    $('keptBox').innerHTML = '';
   } else $('keptBox').innerHTML = '<div class="kept"><div class="hoard">' + hoardSvg(l.kept_total) + '<div><div class="lbl">Kept from the gate</div><div class="v">' + esc(money(l.kept_total, cur)) + '</div>' +
     '<div class="hint">' + l.kept_count + ' item' + (l.kept_count === 1 ? '' : 's') + ' let go' + (l.moved_total ? ' · ' + esc(money(l.moved_total, cur)) + ' in the Vault' : '') + '. The pile grows with every one.</div></div></div>' +
     l.to_move.map(i => '<div style="margin-top:8px"><button class="btn good small wide" type="button" data-l="move" data-id="' + esc(i.id) + '">Move ' + esc(money(i.price, cur)) + ' into the Vault</button></div>').join('') + '</div>';
