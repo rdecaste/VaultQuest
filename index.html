@@ -1520,7 +1520,11 @@ function checkSplash() {
   let seen = [];
   try { seen = JSON.parse(store.get(SEEN_KEY) || '[]'); } catch (e) {}
   const first = !store.get(SEEN_KEY);
-  const news = (state.events || []).filter(e => e.type === 'PERFECT_DEFENSE' || e.type === 'TIER_UP');
+  // With the seals there is no shield to defend (Roy, 15 Oct 2026: "what is
+  // defense again?"): the weekly Perfect Defense news stays off the card and
+  // only a tier-up shows.
+  const sealed = !!(state.seals && state.seals.seals && state.seals.seals.length);
+  const news = (state.events || []).filter(e => e.type === 'TIER_UP' || (!sealed && e.type === 'PERFECT_DEFENSE'));
   if (first) { store.set(SEEN_KEY, JSON.stringify(news.map(e => e.id))); return; }
   const fresh = news.filter(e => seen.indexOf(e.id) < 0).reverse();
   if (!fresh.length) return;
